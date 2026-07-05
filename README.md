@@ -133,7 +133,6 @@ Credit-score-style reputation systems and trust scoring for agents.
 - [nobulex](https://github.com/arian-gogani/nobulex) - Trust economy for autonomous AI agents. Credit scores for machines. Agents earn Trust Capital through verified behavior.
 - [AgenticTrust](https://github.com/Dylan-Xu410/AgenticTrust) - Decentralized reputation, scoring, and discovery infrastructure for AI agents.
 - [mnemopay-sdk](https://github.com/mnemopay/mnemopay-sdk) - Trust & reputation layer for AI agents. Agent Credit Score (300-850) + Merkle-anchored ledger.
-- [agentcred](https://github.com/LuciferForge/agentcred) - Agent Credit Bureau. Trust scoring and audit reports for AI agents and MCP servers.
 - [djd-agent-score](https://github.com/jacobsd32-cpu/djd-agent-score) - Reputation scoring for AI agent wallets on Base.
 - [repute](https://github.com/martintopalov/repute) - FICO score for AI agents. Open source reputation scoring on EAS + Base.
 
