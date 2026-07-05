@@ -38,6 +38,7 @@ Projects listed on this index are checked by the repo validation script
 | Minimum adoption | ≥5 stars | Soft flag (exempted for LF/standards projects) |
 | Recent activity | At least one commit in the last 12 months | Soft flag |
 | Meaningful description | ≥15 characters describing what it does | Soft flag |
+| List entry format | `- [Name](url) - Description` (must include description after link) | Soft flag |
 
 **Hard failures** must be fixed before a PR can merge. If a repo is
 deleted or archived, remove it from the list or replace it with an
