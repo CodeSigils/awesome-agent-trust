@@ -4,9 +4,24 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * 1'   # weekly, Monday 06:00 UTC
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - 'CRITERIA.md'
+      - 'contributing.md'
+      - 'SECURITY.md'
+      - '.github/scripts/**'
+      - '.github/workflows/validate.yml'
   pull_request:
     branches: [main]
-    paths: ['README.md']
+    paths:
+      - 'README.md'
+      - 'CRITERIA.md'
+      - 'contributing.md'
+      - 'SECURITY.md'
+      - '.github/scripts/**'
+      - '.github/workflows/validate.yml'
 
 permissions:
   contents: read
@@ -15,19 +30,17 @@ jobs:
   awesome-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Run awesome-lint
-        run: npx awesome-lint
+        run: npx --yes awesome-lint@2.3.0
 
   validate-repos:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - name: Install dependencies
-        run: pip install pyyaml
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Validate all listed repos exist and are active
-        run: python .github/scripts/validate-repos.py
+        run: python3 .github/scripts/validate-repos.py
         env:
           GH_TOKEN: ${{ github.token }}
