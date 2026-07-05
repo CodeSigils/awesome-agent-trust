@@ -63,7 +63,7 @@ Cryptographic identity for agents — DIDs, Ed25519, zero-trust frameworks.
 
 Frameworks for governing autonomous agent behavior — policy enforcement, zero-trust, execution sandboxing, approval gates.
 
-- [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) - Microsoft's toolkit for AI agent governance. Policy enforcement, zero-trust identity, execution sandboxing, and reliability engineering. [![Stars](https://img.shields.io/github/stars/microsoft/agent-governance-toolkit)](https://github.com/microsoft/agent-governance-toolkit)
+- [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) - Microsoft's toolkit for AI agent governance. Policy enforcement, zero-trust identity, execution sandboxing, and reliability engineering. ([★](https://github.com/microsoft/agent-governance-toolkit/stargazers))
 - [defenseclaw](https://github.com/cisco-ai-defense/defenseclaw) - Cisco's security governance for agentic AI.
 - [cordum](https://github.com/cordum-io/cordum) - Open agent control plane. Govern autonomous AI agents with pre-execution policy enforcement, approval gates, and audit.
 - [lunar.dev](https://github.com/TheLunarCompany/lunar) - Agent-native MCP Gateway for governance and security.
@@ -177,7 +177,7 @@ Security toolkits, vulnerability scanning, skill vetting, and supply chain secur
 
 Curated registries, security-audited marketplaces, and vetted skill catalogs for AI agents.
 
-- [PM Skills](https://github.com/phuryn/pm-skills) - Marketplace for agentic skills, commands, and plugins focused on project management and development workflows. [![Stars](https://img.shields.io/github/stars/phuryn/pm-skills)](https://github.com/phuryn/pm-skills)
+- [PM Skills](https://github.com/phuryn/pm-skills) - Marketplace for agentic skills, commands, and plugins focused on project management and development workflows. ([★](https://github.com/phuryn/pm-skills/stargazers))
 - [Claude Code Plugins Plus](https://github.com/jeremylongshore/claude-code-plugins-plus-skills) - Open-source marketplace. 425 plugins, 2,810 skills, 200 agents for Claude Code.
 - [Claude Code Skills](https://github.com/daymade/claude-code-skills) - Professional Claude Code skills marketplace featuring production-ready skills for enhanced development workflows.
 - [Binance Skills Hub](https://github.com/binance/binance-skills-hub) - Open skills marketplace giving AI agents native access to crypto exchange capabilities through curated, verified skills.
