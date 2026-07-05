@@ -30,7 +30,6 @@ DNS-like resolution for AI agents. Core protocol with IETF draft backing.
 
 - [Agent Name Service](https://github.com/agentnameservice/ans) - Reference implementation of the ANS protocol. Registry, transparency log, and IETF draft `draft-narajala-ans-00`.
 - [ANS Registry](https://github.com/agentnameservice/ans-registry) - Registration and resolution for the Agent Name Service.
-- [Agent Name Service (OWASP)](https://github.com/ruvnet/Agent-Name-Service) - ANS Protocol introduced by the OWASP GenAI Security Project. Foundational framework for agent identity.
 - [ANS SDK for Rust](https://github.com/agentnameservice/ans-sdk-rust) - Rust SDK for the Agent Name Service.
 - [ANS SDK for Go](https://github.com/agentnameservice/ans-sdk-go) - Go SDK for the Agent Name Service.
 - [ANS SDK for Java](https://github.com/agentnameservice/ans-sdk-java) - Java SDK for the Agent Name Service.
@@ -212,7 +211,6 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 - [neus/network](https://github.com/neus/network) - Open trust network for apps, people, and AI agents.
 - [dos-kernel](https://github.com/anthony-chaudhary/dos-kernel) - Catch AI agents when they lie about what they shipped. Verifies claims against git.
 - [Graphenium](https://github.com/lambda-alpha-labs/Graphenium) - Trust and verification layer for AI-generated code changes.
-- [AgentVault](https://github.com/SecureAgentTools/AgentVault) - Open-source toolkit (Python, Registry API, CLI) for secure, decentralized AI agent interoperability using A2A/MCP.
 - [Kinetic Trust Protocol](https://github.com/nmcitra/ktp-rfc) - Dynamic, physics-based authorization of autonomous agents.
 - [MoveGate Protocol](https://github.com/hamzzaaamalik/movegate-contracts) - Agent Identity, Authorization, and Trust Infrastructure for Sui. On-chain mandate delegation.
 - [Oath Protocol](https://github.com/oath-protocol/oath-protocol) - Protocol for cryptographically verifiable human intent. Agent authorization, local-first, offline-capable.

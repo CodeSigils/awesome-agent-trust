@@ -22,16 +22,22 @@ The project must directly address one of these domains:
 
 ## Quality Gates
 
-Projects must meet all of the following, verified by the repo validation
-script (`.github/scripts/validate-repos.py`):
+Projects listed on this index are checked by the repo validation script
+(`.github/scripts/validate-repos.py`). Two severity levels exist:
 
-| Gate | Threshold | Enforced as |
-|------|-----------|-------------|
-| Repository exists | GitHub API returns 200 | **Hard failure** — CI fails |
-| Not archived | `archived: false` in API response | **Hard failure** — CI fails |
-| Has a meaningful description | ≥15 characters describing what it does | Soft flag |
+| Level | Trigger | Effect |
+|-------|---------|--------|
+| **Hard failure** | Repo is 404 (deleted) or archived | CI fails — must fix before merge |
+| **Soft flag** | Below star threshold, no license, inactive, or weak description | Warning in weekly report — human reviews and decides |
+
+| Gate | Threshold | Severity |
+|------|-----------|----------|
+| Repository exists | GitHub API returns 200 | **Hard failure** |
+| Not archived | `archived: false` in API response | **Hard failure** |
+| Has an open-source license | `license` field is not null | Soft flag |
 | Minimum adoption | ≥5 stars | Soft flag (exempted for LF/standards projects) |
 | Recent activity | At least one commit in the last 12 months | Soft flag |
+| Meaningful description | ≥15 characters describing what it does | Soft flag |
 
 **Hard failures** must be fixed before a PR can merge. If a repo is
 deleted or archived, remove it from the list or replace it with an
