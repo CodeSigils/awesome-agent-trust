@@ -2,7 +2,7 @@
 
 > A curated list of open-source projects, protocols, and standards for AI agent identity, naming, trust verification, governance, and security.
 
-*Inspired by the [ANS (Agent Name Service)](https://github.com/agentnameservice/ans) ecosystem and Linux Foundation standards efforts.*
+*Inspired by the [ANS (Agent Name Service)](https://github.com/agentnameservice) ecosystem and Linux Foundation standards efforts.*
 
 ---
 
@@ -28,7 +28,7 @@
 
 DNS-like resolution for AI agents. Core protocol with IETF draft backing.
 
-- Agent Name Service - Reference implementation of the ANS protocol. Registry, transparency log, and IETF draft `draft-narajala-ans-00`.
+- [Agent Name Service](https://github.com/agentnameservice/ans) - Reference implementation of the ANS protocol. Registry, transparency log, and IETF draft `draft-narajala-ans-00`.
 - [ANS Registry](https://github.com/agentnameservice/ans-registry) - Registration and resolution for the Agent Name Service.
 - [Agent Name Service (OWASP)](https://github.com/ruvnet/Agent-Name-Service) - ANS Protocol introduced by the OWASP GenAI Security Project. Foundational framework for agent identity.
 - [ANS SDK for Rust](https://github.com/agentnameservice/ans-sdk-rust) - Rust SDK for the Agent Name Service.
