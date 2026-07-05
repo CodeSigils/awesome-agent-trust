@@ -79,7 +79,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 - [cullis](https://github.com/cullis-security/cullis) - Zero-trust governance for autonomous AI agents in regulated organizations. Self-hosted gateway with verified identity.
 - [Preventra](https://github.com/Preventra/preventra) - Governance, trust, and identity for the agentic economy. Public infrastructure.
 - [Lelu](https://github.com/Lelu-ai/lelu) - Open-source authorization engine for AI agents. Confidence-aware gating, human-in-the-loop, and policy enforcement.
-- [veldt-kya](https://github.com/veldtlabs/veldt-kya)
+- [veldt-kya](https://github.com/veldtlabs/veldt-kya) - KYA (Know Your Agents). Open-source trust, governance, and evidentiary assurance for autonomous systems.
 
 ---
 
@@ -154,7 +154,7 @@ Immutable audit logs, hash-chained event records, session replay, and observabil
 - [forgesight](https://github.com/Scaffoldic/forgesight) - Vendor-neutral, OpenTelemetry-first telemetry for AI agents. Traces, cost, budgets, audit trails.
 - [SoulGuard](https://github.com/saluca-labs/soulguard) - Open trust layer for AI-agent memory. Tamper-evident memory and cryptographic agent identity.
 - [vaara](https://github.com/vaaraio/vaara) - Open-source evidence layer for AI governance. Gates every agent tool call against your policies with verifiable receipts.
-- [trishula-agent-telemetry](https://github.com/TrishulaSoftware/trishula-agent-telemetry)
+- [trishula-agent-telemetry](https://github.com/TrishulaSoftware/trishula-agent-telemetry) - Deterministic agent observability. Merkle-chained audit trails. Anomaly detection. Zero dependencies.
 
 ---
 

@@ -66,6 +66,7 @@ Pull requests that modify `README.md` are checked by two CI jobs:
 - Has an open-source license (soft flag)
 - Has ≥5 stars (soft flag; exempt for LF/standards projects)
 - Has a meaningful description (soft flag)
+- List entry in README includes a description after the link (soft flag)
 - Committed within the last 12 months (soft flag)
 
 Run both locally before submitting:

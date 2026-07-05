@@ -115,6 +115,32 @@ def check_repo(repo: str) -> dict[str, Any]:
     return result
 
 
+def check_readme_descriptions(path: Path) -> list[tuple[int, str]]:
+    """Check README list entries have descriptions after links.
+
+    Returns list of (line_number, line_text) for bare entries.
+    """
+    text = path.read_text(encoding="utf-8")
+    bare = []
+    for i, line in enumerate(text.split("\n"), 1):
+        s = line.strip()
+        if not s.startswith("- [") or "](https://" not in s:
+            continue
+        # Find closing paren of the link URL
+        for _ in range(s.count("](")):
+            start = s.index("](") + 2
+            end = s.index(")", start) if ")" in s[start:] else -1
+            if end < 0:
+                break
+            rest = s[end+1:]
+            if not rest.startswith(" - ") and not rest.startswith(" — "):
+                bare.append((i, s[:80]))
+                break
+            # Found a valid entry, stop checking this line
+            break
+    return bare
+
+
 def main() -> int:
     repos = sorted(extract_repos(README_PATH))
     print(f"=== awesome-agent-trust validation: {len(repos)} repos ===\n")
@@ -142,8 +168,17 @@ def main() -> int:
                 for item in items:
                     print(f"    {item}")
 
+    # Check README entries have descriptions
+    bare_entries = check_readme_descriptions(README_PATH)
+
     hard_fails = [r for r in failed if any(e in HARD_ERRORS for e in r["errors"])]
     soft_fails = [r for r in failed if r not in hard_fails]
+
+    if bare_entries:
+        soft_fails.append({"repo": f"README.md ({len(bare_entries)} bare entries)", "errors": ["BARE_ENTRY"]})
+        print(f"  BARE_ENTRY ({len(bare_entries)}):")
+        for ln, text in bare_entries:
+            print(f"    L{ln}: {text}")
 
     print(f"\n{'='*50}")
     if hard_fails:
