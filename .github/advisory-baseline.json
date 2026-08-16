@@ -1,0 +1,38 @@
+{
+  "reviewed": "2026-08-16",
+  "advisories": {
+    "INACTIVE": ["Ineedsomuchhelp/AINRP"],
+    "LOW_STARS": [
+      "AgentSafe-AI/tooltrust-directory", "AgnesDevita/DecisionNotary",
+      "AuroraAeon/agentattest", "Dylan-Xu410/AgenticTrust",
+      "Ineedsomuchhelp/AINRP", "LineageLabs/awesome-ai-agent-protocols",
+      "Preventra/preventra", "Scaffoldic/forgesight",
+      "SwarmProtocol-fun/swarm-hedera", "TrishulaSoftware/trishula-agent-telemetry",
+      "Xucion/TEE-backed-Private-Memory-Layer-for-Agents", "agenticpoa/jean-claw-van-damme",
+      "agentnameservice/ans-sdk-java", "api-evangelist/agentic-ai-foundation",
+      "attestplane/attestplane", "azeth-protocol/awesome-machine-economy",
+      "berkay-aktas/kairon-protocol", "chokonaira/permitrail",
+      "cullis-security/cullis", "dgverse-labs/helixid", "enchanter-ai/mimir",
+      "hamzzaaamalik/movegate-contracts", "hazennik/asi", "ionalpha/provetrail",
+      "jacobsd32-cpu/djd-agent-score", "joyshmitz/ampersona", "logpose-dev/logpose",
+      "martintopalov/repute", "nmcitra/ktp-rfc", "oath-protocol/oath-protocol",
+      "opena2a-org/ai-trust", "originlayer/agent-identity-protocol",
+      "priyansh-x/agent-passport", "radotsvetkov/soma", "rioX432/agent-witness",
+      "route-ans/route-ans", "saluca-labs/soulguard", "selfradiance/actionwarrant",
+      "smouj/agentdnai", "sunilgentyala/AegisSwarm-Core", "trailingai/trailing",
+      "veldtlabs/veldt-kya", "vkobel/confidential-computing-expert-skill",
+      "yourclaw/clawguard"
+    ],
+    "NO_LICENSE": [
+      "AgnesDevita/DecisionNotary", "DAMONBLUE2021/Agentoes",
+      "Eyadkelleh/awesome-skills-security", "NY1024/ClawGuard",
+      "Preventra/preventra", "TrishulaSoftware/trishula-agent-telemetry",
+      "aiskillstore/marketplace", "api-evangelist/agentic-ai-foundation",
+      "azeth-protocol/awesome-machine-economy", "berkay-aktas/kairon-protocol",
+      "binance/binance-skills-hub", "edwang2006/fides_protocol",
+      "joyshmitz/ampersona", "linny006/awesome-agent-skills", "logpose-dev/logpose",
+      "martintopalov/repute", "opena2a-org/ai-trust", "selfradiance/actionwarrant",
+      "vkobel/confidential-computing-expert-skill", "yourclaw/clawguard"
+    ]
+  }
+}

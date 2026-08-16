@@ -10,6 +10,7 @@ node_modules/
 
 # Python cache
 __pycache__/
+node_modules/
 *.pyc
 
 # macOS

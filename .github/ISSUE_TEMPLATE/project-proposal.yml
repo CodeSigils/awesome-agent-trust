@@ -1,0 +1,64 @@
+name: Project proposal or eligibility question
+description: Propose an entry or ask whether a project meets the inclusion criteria
+title: "Proposal: "
+labels:
+  - proposal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read CRITERIA.md and contributing.md first. A pull request remains the normal submission path; use this form when eligibility needs discussion.
+  - type: input
+    id: project
+    attributes:
+      label: Project
+      placeholder: Project name
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Public repository or specification URL
+      placeholder: https://github.com/owner/repository
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Proposed category
+      options:
+        - Agent Naming & Discovery
+        - Agent Identity & Cryptographic Identity
+        - Agent Governance & Policy Enforcement
+        - Agent Permissions & Authorization
+        - Trust Registries & Verification
+        - Agent Reputation & Scoring
+        - Audit Trails & Observability
+        - Security & Scanning
+        - Skills Curation & Trusted Marketplaces
+        - Standards, Specifications & Foundations
+        - Agent-to-Agent Protocols
+        - Attestation & Confidential Computing
+    validations:
+      required: true
+  - type: textarea
+    id: relevance
+    attributes:
+      label: Relevance
+      description: Explain the concrete trust, identity, governance, verification, or security function.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Quality evidence
+      description: Include licensing, maintenance, adoption, independent verification, governance, or standards-process evidence. Explain any exception requested.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked for an existing entry and read CRITERIA.md and contributing.md.
+          required: true

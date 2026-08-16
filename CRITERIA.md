@@ -27,27 +27,35 @@ Projects listed on this index are checked by the repo validation script
 
 | Level | Trigger | Effect |
 |-------|---------|--------|
-| **Hard failure** | Repo is 404 (deleted) or archived | CI fails — must fix before merge |
-| **Soft flag** | Below star threshold, no license, inactive, or weak description | Warning in weekly report — human reviews and decides |
+| **Hard failure** | Repository is missing or archived, or validation cannot complete reliably | CI fails — fix the entry or rerun after the infrastructure problem is resolved |
+| **Soft flag** | Below star threshold, no detected license, inactive, or weak description | Advisory signal — a human reviews the project in context |
 
 | Gate | Threshold | Severity |
 |------|-----------|----------|
 | Repository exists | GitHub API returns 200 | **Hard failure** |
 | Not archived | `archived: false` in API response | **Hard failure** |
-| Has an open-source license | `license` field is not null | Soft flag |
-| Minimum adoption | ≥5 stars | Soft flag (exempted for LF/standards projects) |
-| Recent activity | At least one commit in the last 12 months | Soft flag |
+| Has an open-source license | GitHub detects a license, or a documented specification exception applies | Soft flag for existing entries; normally required for new software submissions |
+| Minimum adoption | ≥5 stars | Advisory soft flag; not a substitute for technical or governance evidence |
+| Recent activity | Repository push within the last 12 months | Advisory soft flag; `pushed_at` is only a maintenance proxy |
 | Meaningful description | ≥15 characters describing what it does | Soft flag |
 | List entry format | `- [Name](url) - Description` (must include description after link) | Soft flag |
 
-**Hard failures** must be fixed before a PR can merge. If a repo is
-deleted or archived, remove it from the list or replace it with an
-alternative.
+**Hard failures** must be fixed before a PR can merge. If a repository is
+deleted or archived, remove it or replace it with a verified successor. API,
+authentication, and network failures are reported separately and fail closed;
+they are not evidence that a project was deleted.
 
-**Soft flags** produce warnings in the weekly CI report but do not
-block PRs. They indicate projects that may be early-stage, dormant,
-or underspecified — a human reviews and decides whether to keep or
-prune.
+**Soft flags** do not block pull requests. They identify projects that may be
+early-stage, dormant, underspecified, or missing machine-detectable licensing.
+Human review may retain a project when stronger evidence exists, such as a
+recognized specification process, independent interoperability verification,
+documented adoption, or foundation governance. Stars alone never establish
+quality or trustworthiness.
+
+The dated `.github/advisory-baseline.json` records already-observed soft flags
+so scheduled runs emphasize new and resolved signals. It is derived monitoring
+state, not an approval or exception. `.github/repo-exceptions.json` is the only
+place where a reviewed signal may be waived.
 
 ## Categorization Rules
 
@@ -56,16 +64,19 @@ prune.
   sections.
 - **Cross-cutting projects** go in whichever category best describes
   their primary purpose.
-- **Standards and specifications** (W3C, IETF, EIP, Linux Foundation)
-  are exempt from the star threshold but must still exist and be
-  publicly accessible.
+- **Standards and specifications** may receive narrowly documented exceptions
+  in `.github/repo-exceptions.json`. Repository-name keywords are not evidence
+  of standards status or foundation affiliation.
+- **Exceptions are evidence records, not automatic acceptance.** Each one must
+  name the repository, the exact checks waived, the reason, and a review date.
 
 ## Exclusion Criteria
 
 Projects are excluded if they:
 
 - Do not relate to agent identity, trust, governance, or security
-- Are tutorials, hackathon demos, or workshop materials
+- Are tutorials, samples, hackathon demos, or workshop materials, unless the
+  artifact is the canonical implementation of an included specification
 - Have no public repository or documentation
 - Are purely commercial products without an open-source component
 - Are duplicates of another listed project with the same scope

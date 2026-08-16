@@ -1,0 +1,22 @@
+{
+  "exceptions": [
+    {
+      "repo": "CSOAI-ORG/meok-aaif-agent-card-mcp",
+      "checks": ["LOW_STARS"],
+      "reason": "Reference integration for the AAIF-hosted A2A ecosystem.",
+      "review_after": "2027-08-01"
+    },
+    {
+      "repo": "CSOAI-ORG/oasf-agent-directory-mcp",
+      "checks": ["LOW_STARS"],
+      "reason": "Reference integration for the LF-hosted OASF and AGNTCY ecosystems.",
+      "review_after": "2027-08-01"
+    },
+    {
+      "repo": "capiscio/capiscio-rfcs",
+      "checks": ["LOW_STARS", "NO_LICENSE"],
+      "reason": "Community specification repository; retain for public protocol review while licensing is clarified.",
+      "review_after": "2026-11-01"
+    }
+  ]
+}

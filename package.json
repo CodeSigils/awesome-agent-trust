@@ -1,0 +1,11 @@
+{
+  "name": "awesome-agent-trust-maintenance",
+  "private": true,
+  "scripts": {
+    "lint": "awesome-lint",
+    "test": "python3 -m unittest discover -s tests -v"
+  },
+  "devDependencies": {
+    "awesome-lint": "2.3.0"
+  }
+}

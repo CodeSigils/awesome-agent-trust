@@ -28,7 +28,7 @@
 - [Audit Trails & Observability](#audit-trails--observability)
 - [Security & Scanning](#security--scanning)
 - [Skills Curation & Trusted Marketplaces](#skills-curation--trusted-marketplaces)
-- [Linux Foundation & Standards](#linux-foundation--standards)
+- [Standards, Specifications & Foundations](#standards-specifications--foundations)
 - [Agent-to-Agent Protocols](#agent-to-agent-protocols)
 - [Attestation & Confidential Computing](#attestation--confidential-computing)
 - [Related Awesome Lists](#related-awesome-lists)
@@ -56,7 +56,6 @@ Cryptographic identity for agents — DIDs, Ed25519, zero-trust frameworks.
 
 - [AGNTCY Identity](https://github.com/agntcy/identity) - Linux Foundation project. Onboard, create, and verify identities for Agents, MCP Servers, and multi-agent systems.
 - [OrgKernel](https://github.com/MetapriseAI/OrgKernel) - Open-source trust layer for AI agents. Cryptographic agent identity (Ed25519), instance-scoped execution tokens, SHA-256 integrity verification.
-- [Vorim Agent Identity Protocol (VAIP)](https://github.com/Vorim-AI-Labs/vorim-protocol) - Open standard for AI agent identity, permissions, and cryptographic audit trails.
 - [Alibaba Open Agent Auth](https://github.com/alibaba/open-agent-auth) - Enterprise framework implementing Agent Operation Authorization protocol with cryptographic identity binding and fine-grained permission verification.
 - [Agent Identity Protocol (AIP)](https://github.com/openagentidentityprotocol/agentidentityprotocol) - Zero-trust security layer for AI agents. Policy enforcement proxy for MCP with human-in-the-loop.
 - [ASI](https://github.com/hazennik/asi) - Minimal cryptographic identity standard for agent skill ecosystems. Ed25519 + DID:key + JCS bundling.
@@ -104,7 +103,6 @@ Fine-grained authorization, delegation, and permission systems for agent tool ex
 - [agentlock](https://github.com/webpro255/agentlock) - Adversarially benchmarked pre-action agent authorization. Framework-agnostic tool permissions.
 - [theauth](https://github.com/glincker/theauth) - Auth for AI agents and humans. First-class agent identity, MCP, OAuth 2.1, delegation, audit.
 - [spicebox](https://github.com/authzed/spicebox) - Fine-grained permissions for AI coding agents (by AuthZed / SpiceDB).
-- [CapiscIO Agent Guard](https://github.com/capiscio/a2a-demos) - Trust badges, identity verification, and tool-level authorization for AI agents.
 - [Jean-Claw-Van-Damme](https://github.com/agenticpoa/jean-claw-van-damme) - Authorization gatekeeper for OpenClaw agents. Scoped grants, time-bound permissions, skill scanning.
 - [permitrail](https://github.com/chokonaira/permitrail) - Open-source permission and audit layer for AI agents that take real actions.
 - [agent-passport](https://github.com/priyansh-x/agent-passport) - Authorization for AI agents. Scoped permissions, spend limits, delegation chains, instant revocation. Ed25519-signed.
@@ -207,14 +205,15 @@ Curated registries, security-audited marketplaces, and vetted skill catalogs for
 
 ---
 
-## Linux Foundation & Standards
+## Standards, Specifications & Foundations
 
-Officially recognized standards efforts under Linux Foundation, OASF, AAIF, AGNTCY.
+Open standards and specifications, including work hosted by foundations and
+community-led efforts. Inclusion does not imply endorsement or foundation
+affiliation unless the entry explicitly says so.
 
 - [OASF Agent Directory MCP](https://github.com/CSOAI-ORG/oasf-agent-directory-mcp) - Cisco AGNTCY bridge under Linux Foundation for the OASF Agent Directory.
 - [AAIF Agent Card MCP](https://github.com/CSOAI-ORG/meok-aaif-agent-card-mcp) - Linux Foundation AAIF Agent Card MCP. Publish `/.well-known/agent-card`, bridge A2A and OASF.
-- [ServiceNow A2A Sample](https://github.com/ServiceNow/sn-a2a) - Sample client for Linux Foundation A2A (Agent-to-Agent) protocol.
-- [Agentic AI Foundation](https://github.com/api-evangelist/agentic-ai-foundation) - LF Agentic AI Foundation (AAIF), formed December 2025.
+- [Agentic AI Foundation](https://github.com/api-evangelist/agentic-ai-foundation) - Community repository tracking the Agentic AI Foundation ecosystem.
 - [CapiscIO RFCs](https://github.com/capiscio/capiscio-rfcs) - Request for Comments for CapiscIO protocols and standards. AGCP, trust policies, agent identity.
 
 ---
@@ -252,7 +251,6 @@ TEE-backed attestation, confidential computing, and hardware-enforced security.
 
 - [Confidential AI](https://github.com/confidential-dot-ai/home) - Confidential computing stack for AI workloads. Run inference, training, agents in hardware-encrypted environments.
 - [QWED Verification](https://github.com/QWED-AI/qwed-verification) - Deterministic verification layer for AI systems. Verifies outputs using mathematics and symbolic reasoning.
-- [Azure Trust Agents](https://github.com/microsoft/azure-trust-agents) - Hands-on hackathon challenges for building multi-agent financial compliance workflows with Azure confidential computing.
 - [Confidential Computing Expert Skill](https://github.com/vkobel/confidential-computing-expert-skill) - AI agent skill for confidential computing. TEE platforms, attestation protocols, KRAB verifiability.
 - [TEE-backed Private Memory](https://github.com/Xucion/TEE-backed-Private-Memory-Layer-for-Agents) - Private memory layer using Gramine SGX/RA-TLS for AI agents.
 

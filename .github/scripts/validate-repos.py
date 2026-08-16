@@ -1,203 +1,296 @@
 #!/usr/bin/env python3
-"""Validate awesome-agent-trust list entries against quality criteria.
+"""Validate repository links and review signals in the awesome list.
 
-Checks each GitHub repo URL in README.md for:
-- Repo exists (not 404/renamed/deleted)
-- Has >= 5 stars (minimum adoption threshold, except for LF standards)
-- Has commits within the last 12 months (active)
-- Has a non-trivial description
-- Has an open-source license (soft flag)
-
-Exit code 0 = all repos pass (soft flags only)
-Exit code 1 = one or more repos 404 or archived (must fix)
+Missing or archived repositories and incomplete API checks fail validation.
+Advisory quality signals remain non-blocking unless they are configuration
+errors. Narrow, evidence-backed exceptions live in repo-exceptions.json.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 README_PATH = REPO_ROOT / "README.md"
+EXCEPTIONS_PATH = REPO_ROOT / ".github" / "repo-exceptions.json"
+BASELINE_PATH = REPO_ROOT / ".github" / "advisory-baseline.json"
 NOW = datetime.now(timezone.utc)
+MAX_WORKERS = 8
 
-# Repos can be exempted from star/activity checks if they're standards/specs
-# Exit code 1 only for repos that are gone or archived (actionable)
-# Low stars, weak descriptions, and inactivity produce warnings only
-HARD_ERRORS = {"NOT_FOUND", "ARCHIVED"}
-
-LF_KEYWORDS = (
-    "linux foundation", "oasf", "aaif", "agntcy", "a2a",
-    "ietf", "w3c", "eip-", "erc-", "specification",
-)
+HARD_ERRORS = {"NOT_FOUND", "ARCHIVED", "API_ERROR", "CONFIG_ERROR"}
+SOFT_ERRORS = {"NO_LICENSE", "LOW_STARS", "INACTIVE", "WEAK_DESC", "BARE_ENTRY"}
 
 
 def extract_repos(path: Path) -> set[str]:
-    """Extract unique GitHub owner/name pairs from README."""
+    """Extract normalized GitHub owner/repository pairs from Markdown links."""
     text = path.read_text(encoding="utf-8")
-    urls = re.findall(r'https://github\.com/[^) \n]+', text)
+    urls = re.findall(r"https://github\.com/[^)\s]+", text)
     repos: set[str] = set()
-    for u in urls:
-        u = u.rstrip(".,)")
-        parts = u.replace("https://github.com/", "").split("/")
-        if len(parts) >= 2 and parts[0]:
+    for url in urls:
+        parts = url.rstrip(".,)").removeprefix("https://github.com/").split("/")
+        if len(parts) >= 2 and parts[0] and parts[1]:
             repos.add(f"{parts[0]}/{parts[1]}")
     return repos
 
 
-def check_repo(repo: str) -> dict[str, Any]:
-    """Return validation results for one repo."""
-    result = {
-        "repo": repo,
-        "exists": False,
-        "stars": 0,
-        "description": "",
-        "pushed_at": "",
-        "last_commit_days_ago": None,
-        "archived": False,
-        "has_license": False,
-        "is_lf": any(kw in repo.lower() for kw in LF_KEYWORDS),
-        "errors": [],
-    }
-
+def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str, set[str]], list[str]]:
+    """Load reviewed exceptions and return them with configuration errors."""
+    today = today or date.today()
     try:
-        proc = subprocess.run(
-            ["gh", "api", f"repos/{repo}",
-             "--jq", "{stars: .stargazers_count, desc: .description, pushed: .pushed_at, archived: .archived, license: .license}"],
-            capture_output=True, text=True, timeout=10,
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {}, [f"cannot read {path}: {exc}"]
+
+    if not isinstance(raw, dict) or not isinstance(raw.get("exceptions"), list):
+        return {}, [f"{path}: top-level 'exceptions' must be a list"]
+
+    exceptions: dict[str, set[str]] = {}
+    errors: list[str] = []
+    for index, item in enumerate(raw["exceptions"], 1):
+        if not isinstance(item, dict):
+            errors.append(f"entry {index}: must be an object")
+            continue
+        repo = item.get("repo", "")
+        checks = set(item.get("checks", []))
+        reason = item.get("reason", "").strip()
+        review_after = item.get("review_after", "")
+        label = repo or f"entry {index}"
+
+        if not re.fullmatch(r"[^/\s]+/[^/\s]+", repo):
+            errors.append(f"{label}: invalid repository name")
+        if repo in exceptions:
+            errors.append(f"{label}: duplicate exception")
+        unknown = checks - SOFT_ERRORS
+        if unknown:
+            errors.append(f"{label}: unsupported checks: {', '.join(sorted(unknown))}")
+        if not checks:
+            errors.append(f"{label}: checks must not be empty")
+        if len(reason) < 20:
+            errors.append(f"{label}: reason must contain reviewable evidence")
+        try:
+            review_date = date.fromisoformat(review_after)
+            if review_date < today:
+                errors.append(f"{label}: exception expired on {review_after}")
+        except ValueError:
+            errors.append(f"{label}: review_after must be an ISO date")
+
+        exceptions[repo] = checks
+    return exceptions, errors
+
+
+def load_advisory_baseline(path: Path) -> tuple[set[tuple[str, str]], list[str]]:
+    """Load the observed advisory snapshot; it does not waive any checks."""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return set(), [f"cannot read {path}: {exc}"]
+    if not isinstance(raw, dict) or not isinstance(raw.get("advisories"), dict):
+        return set(), [f"{path}: top-level 'advisories' must be an object"]
+    try:
+        date.fromisoformat(raw.get("reviewed", ""))
+    except (TypeError, ValueError):
+        return set(), [f"{path}: 'reviewed' must be an ISO date"]
+
+    pairs: set[tuple[str, str]] = set()
+    errors: list[str] = []
+    for check, repos in raw["advisories"].items():
+        if check not in SOFT_ERRORS:
+            errors.append(f"{path}: unsupported advisory {check}")
+            continue
+        if not isinstance(repos, list) or not all(isinstance(repo, str) for repo in repos):
+            errors.append(f"{path}: {check} must be a list of repositories")
+            continue
+        pairs.update((check, repo) for repo in repos)
+    return pairs, errors
+
+
+def fetch_repo(repo: str, *, token: str | None = None) -> dict[str, Any]:
+    """Fetch repository metadata, preserving HTTP status for classification."""
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "awesome-agent-trust-validator",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    request = Request(f"https://api.github.com/repos/{repo}", headers=headers)
+    with urlopen(request, timeout=15) as response:
+        return json.load(response)
+
+
+def resolve_token() -> str | None:
+    """Use an Actions token or the authenticated GitHub CLI token locally."""
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token:
+        return token
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
-        if proc.returncode != 0:
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> dict[str, Any]:
+    """Return hard failures and advisory signals for one repository."""
+    result: dict[str, Any] = {
+        "repo": repo,
+        "stars": 0,
+        "last_commit_days_ago": None,
+        "errors": [],
+        "detail": "",
+    }
+    try:
+        data = fetch_repo(repo, token=token)
+    except HTTPError as exc:
+        if exc.code == 404:
             result["errors"].append("NOT_FOUND")
-            return result
-
-        data = json.loads(proc.stdout)
-        result["exists"] = True
-        result["stars"] = data.get("stars", 0)
-        result["description"] = (data.get("desc") or "").strip()
-        result["pushed_at"] = data.get("pushed", "")
-        result["archived"] = data.get("archived", False)
-        result["has_license"] = data.get("license") is not None and data["license"] is not False
-
-    except Exception as e:
-        result["errors"].append(f"API_ERROR: {e}")
+        else:
+            result["errors"].append("API_ERROR")
+            result["detail"] = f"GitHub returned HTTP {exc.code}"
+        return result
+    except (URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+        result["errors"].append("API_ERROR")
+        result["detail"] = str(exc)
         return result
 
-    # Checks
-    if result["archived"]:
+    result["stars"] = data.get("stargazers_count", 0)
+    description = (data.get("description") or "").strip()
+    pushed_at = data.get("pushed_at") or ""
+
+    if data.get("archived", False):
         result["errors"].append("ARCHIVED")
-
-    if not result["has_license"]:
+    if not data.get("license"):
         result["errors"].append("NO_LICENSE")
-
-    if not result["description"] or len(result["description"]) < 15:
+    if len(description) < 15:
         result["errors"].append("WEAK_DESC")
-
-    # Star threshold: only enforce if NOT an LF/standards project
-    if not result["is_lf"] and result["stars"] < 5:
+    if result["stars"] < 5:
         result["errors"].append("LOW_STARS")
 
-    # Activity check
-    if result["pushed_at"]:
+    if pushed_at:
         try:
-            pushed = datetime.fromisoformat(result["pushed_at"].replace("Z", "+00:00"))
-            days = (NOW - pushed).days
-            result["last_commit_days_ago"] = days
-            if days > 365:
+            pushed = datetime.fromisoformat(pushed_at.replace("Z", "+00:00"))
+            result["last_commit_days_ago"] = (now - pushed).days
+            if result["last_commit_days_ago"] > 365:
                 result["errors"].append("INACTIVE")
         except ValueError:
-            pass
-
+            result["errors"].append("API_ERROR")
+            result["detail"] = "GitHub returned an invalid pushed_at timestamp"
     return result
 
 
 def check_readme_descriptions(path: Path) -> list[tuple[int, str]]:
-    """Check README list entries have descriptions after links.
-
-    Returns list of (line_number, line_text) for bare entries.
-    """
-    text = path.read_text(encoding="utf-8")
-    bare = []
-    for i, line in enumerate(text.split("\n"), 1):
-        s = line.strip()
-        if not s.startswith("- [") or "](https://" not in s:
+    """Return list entries that do not have a description after the link."""
+    bare: list[tuple[int, str]] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        if not stripped.startswith("- [") or "](http" not in stripped:
             continue
-        # Find closing paren of the link URL
-        for _ in range(s.count("](")):
-            start = s.index("](") + 2
-            end = s.index(")", start) if ")" in s[start:] else -1
-            if end < 0:
-                break
-            rest = s[end+1:]
-            if not rest.startswith(" - ") and not rest.startswith(" — "):
-                bare.append((i, s[:80]))
-                break
-            # Found a valid entry, stop checking this line
-            break
+        match = re.match(r"^- \[[^]]+\]\([^)]+\)(.*)$", stripped)
+        if match and not match.group(1).startswith((" - ", " — ")):
+            bare.append((line_number, stripped[:100]))
     return bare
+
+
+def compare_advisories(
+    active_flags: dict[str, list[str]],
+    baseline: set[tuple[str, str]],
+    *,
+    complete: bool,
+) -> tuple[set[tuple[str, str]], set[tuple[str, str]], set[tuple[str, str]]]:
+    """Compare advisories without claiming resolutions from partial metadata."""
+    current = {
+        (error, repo)
+        for error, items in active_flags.items()
+        if error in SOFT_ERRORS
+        for repo in items
+    }
+    return current, current - baseline, baseline - current if complete else set()
 
 
 def main() -> int:
     repos = sorted(extract_repos(README_PATH))
-    print(f"=== awesome-agent-trust validation: {len(repos)} repos ===\n")
+    exceptions, config_errors = load_exceptions(EXCEPTIONS_PATH)
+    baseline, baseline_errors = load_advisory_baseline(BASELINE_PATH)
+    config_errors.extend(baseline_errors)
+    unknown_repos = sorted(set(exceptions) - set(repos))
+    config_errors.extend(f"{repo}: exception refers to an unlisted repository" for repo in unknown_repos)
 
-    results = []
-    for repo in repos:
-        results.append(check_repo(repo))
+    print(f"=== awesome-agent-trust validation: {len(repos)} repositories ===\n")
+    token = resolve_token()
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        results = list(executor.map(lambda repo: check_repo(repo, token=token), repos))
 
-    passed = [r for r in results if not r["errors"]]
-    failed = [r for r in results if r["errors"]]
+    active_flags: dict[str, list[str]] = {}
+    accepted_count = 0
+    hard_failures: list[dict[str, Any]] = []
+    for result in results:
+        waived = exceptions.get(result["repo"], set())
+        accepted_count += len(set(result["errors"]) & waived)
+        result["errors"] = [error for error in result["errors"] if error not in waived]
+        if any(error in HARD_ERRORS for error in result["errors"]):
+            hard_failures.append(result)
+        for error in result["errors"]:
+            active_flags.setdefault(error, []).append(result["repo"])
 
-    print(f"PASS: {len(passed)}/{len(results)}")
-    if failed:
-        print(f"FLAGGED: {len(failed)}/{len(results)}\n")
-        # Group by error type
-        by_error: dict[str, list[str]] = {}
-        for r in failed:
-            for e in r["errors"]:
-                by_error.setdefault(e, []).append(f"{r['repo']} ({r['stars']}★)")
-
-        for err_type in ["NOT_FOUND", "ARCHIVED", "NO_LICENSE", "LOW_STARS", "INACTIVE", "WEAK_DESC"]:
-            items = by_error.get(err_type, [])
-            if items:
-                print(f"  {err_type} ({len(items)}):")
-                for item in items:
-                    print(f"    {item}")
-
-    # Check README entries have descriptions
     bare_entries = check_readme_descriptions(README_PATH)
-
-    hard_fails = [r for r in failed if any(e in HARD_ERRORS for e in r["errors"])]
-    soft_fails = [r for r in failed if r not in hard_fails]
-
     if bare_entries:
-        soft_fails.append({"repo": f"README.md ({len(bare_entries)} bare entries)", "errors": ["BARE_ENTRY"]})
-        print(f"  BARE_ENTRY ({len(bare_entries)}):")
-        for ln, text in bare_entries:
-            print(f"    L{ln}: {text}")
+        active_flags["BARE_ENTRY"] = [f"README.md:{line}" for line, _ in bare_entries]
+    if config_errors:
+        active_flags["CONFIG_ERROR"] = config_errors
 
-    print(f"\n{'='*50}")
-    if hard_fails:
-        print(f"HARD FAILURES ({len(hard_fails)}): repos that are 404 or archived — must fix")
-        for r in hard_fails:
-            print(f"  {r['repo']}: {', '.join(r['errors'])}")
+    comparison_complete = not any("API_ERROR" in result["errors"] for result in results)
+    current_advisories, new_advisories, resolved_advisories = compare_advisories(
+        active_flags, baseline, complete=comparison_complete
+    )
+    report_flags = {
+        error: items for error, items in active_flags.items() if error in HARD_ERRORS
+    }
+    for error, repo in sorted(new_advisories):
+        report_flags.setdefault(f"NEW_{error}", []).append(repo)
 
-    if soft_fails:
-        print(f"SOFT FLAGS ({len(soft_fails)}): low stars, inactive, or weak description — review")
+    for error in sorted(report_flags, key=lambda item: (item.startswith("NEW_"), item)):
+        items = report_flags[error]
+        print(f"{error} ({len(items)}):")
+        for item in items:
+            print(f"  {item}")
+    if current_advisories:
+        print(f"KNOWN ADVISORIES: {len(current_advisories) - len(new_advisories)}")
+    if not comparison_complete:
+        print("ADVISORY COMPARISON SKIPPED: repository metadata was incomplete")
+    if resolved_advisories:
+        print(f"RESOLVED ADVISORIES: {len(resolved_advisories)} (update the baseline)")
+        for error, repo in sorted(resolved_advisories):
+            print(f"  {error}: {repo}")
+    if accepted_count:
+        print(f"\nACCEPTED EXCEPTIONS: {accepted_count}")
 
-    if hard_fails:
-        print("\nRESULT: Hard failures found — remove or replace these repos")
-        return 1
-    elif soft_fails:
-        print("\nRESULT: Only soft flags (no hard failures)")
-        return 0
-    else:
-        print("RESULT: All repos pass quality gates")
-        return 0
+    hard_count = sum(len(items) for error, items in active_flags.items() if error in HARD_ERRORS)
+    soft_count = sum(len(items) for error, items in active_flags.items() if error in SOFT_ERRORS)
+    print(
+        f"\nSUMMARY: {hard_count} hard failure(s), "
+        f"{len(new_advisories)} new and {soft_count - len(new_advisories)} known advisory flag(s)"
+    )
+    if hard_failures:
+        for result in hard_failures:
+            if result["detail"]:
+                print(f"  {result['repo']}: {result['detail']}")
+    return 1 if hard_count else 0
 
 
 if __name__ == "__main__":
