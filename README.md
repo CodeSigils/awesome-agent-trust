@@ -267,6 +267,7 @@ TEE-backed attestation, confidential computing, and hardware-enforced security.
 
 - [Awesome A2A Agents](https://github.com/isekOS/awesome-a2a-agents) - Curated list of tools, frameworks, and projects built on the Agent-to-Agent (A2A) protocol.
 - [Awesome AI Agent Protocols](https://github.com/LineageLabs/awesome-ai-agent-protocols) - Protocols, tools, and services for the AI agent infrastructure stack.
+- [Awesome AI Agents Security](https://github.com/ProjectRecon/awesome-ai-agents-security) - Tools and resources for securing autonomous agents, including runtime protection, red-teaming, sandboxing, guardrails, and agent identity.
 - [Awesome Machine Economy](https://github.com/azeth-protocol/awesome-machine-economy) - The machine economy ecosystem — agent payments, commerce, and finance.
 
 ---
