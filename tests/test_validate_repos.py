@@ -166,5 +166,32 @@ class DescriptionTests(unittest.TestCase):
             self.assertEqual(validator.check_readme_descriptions(path), [(1, "- [Bare](https://example.com)")])
 
 
+class OrderingTests(unittest.TestCase):
+    def test_accepts_alphabetical_entries_and_ignores_contents(self) -> None:
+        text = (
+            "## Contents\n"
+            "- [Zed](https://example.com/zed)\n"
+            "- [Alpha](https://example.com/alpha)\n\n"
+            "## Projects\n"
+            "- [alpha](https://example.com/a) - A.\n"
+            "- [Beta](https://example.com/b) - B.\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_text(text, encoding="utf-8")
+            self.assertEqual(validator.check_readme_ordering(path), [])
+
+    def test_reports_misordered_category(self) -> None:
+        text = (
+            "## Projects\n"
+            "- [Zulu](https://example.com/z) - Z.\n"
+            "- [Alpha](https://example.com/a) - A.\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_text(text, encoding="utf-8")
+            self.assertEqual(validator.check_readme_ordering(path), ["Projects"])
+
+
 if __name__ == "__main__":
     unittest.main()

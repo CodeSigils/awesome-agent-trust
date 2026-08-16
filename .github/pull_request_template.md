@@ -20,6 +20,12 @@ Explain any requested exception explicitly.
 - [ ] I read `CRITERIA.md` and `contributing.md`.
 - [ ] I checked the list for duplicates.
 - [ ] The description uses `- [Name](URL) - Description.` format.
+- [ ] The entry is alphabetized by displayed name within its category.
+- [ ] The description states factual utility rather than copying marketing.
 - [ ] The project is not a tutorial, sample, hackathon demo, workshop, or
       closed commercial product.
-- [ ] `npm ci`, `npm run lint`, and `npm test` pass locally.
+- [ ] I explained any new advisory signal or requested exception above.
+- [ ] I did not edit the maintainer-owned advisory baseline or exception
+      registry unless a maintainer requested it.
+- [ ] `npm ci`, `npm run lint`, `npm test`, and
+      `python3 .github/scripts/validate-repos.py` pass locally.

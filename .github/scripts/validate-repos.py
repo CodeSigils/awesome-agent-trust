@@ -27,7 +27,7 @@ BASELINE_PATH = REPO_ROOT / ".github" / "advisory-baseline.json"
 NOW = datetime.now(timezone.utc)
 MAX_WORKERS = 8
 
-HARD_ERRORS = {"NOT_FOUND", "ARCHIVED", "API_ERROR", "CONFIG_ERROR"}
+HARD_ERRORS = {"NOT_FOUND", "ARCHIVED", "API_ERROR", "CONFIG_ERROR", "MISORDERED"}
 SOFT_ERRORS = {"NO_LICENSE", "LOW_STARS", "INACTIVE", "WEAK_DESC", "BARE_ENTRY"}
 
 
@@ -207,6 +207,32 @@ def check_readme_descriptions(path: Path) -> list[tuple[int, str]]:
     return bare
 
 
+def check_readme_ordering(path: Path) -> list[str]:
+    """Return categories whose Markdown entries are not alphabetized."""
+    failures: list[str] = []
+    section = ""
+    names: list[str] = []
+
+    def finish_section() -> None:
+        if section and section != "Contents":
+            expected = sorted(names, key=str.casefold)
+            if names != expected:
+                failures.append(section)
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            finish_section()
+            section = line.removeprefix("## ").strip()
+            names = []
+            continue
+        if section:
+            match = re.match(r"^- \[([^]]+)\]\(https?://", line)
+            if match:
+                names.append(match.group(1))
+    finish_section()
+    return failures
+
+
 def compare_advisories(
     active_flags: dict[str, list[str]],
     baseline: set[tuple[str, str]],
@@ -251,6 +277,9 @@ def main() -> int:
     bare_entries = check_readme_descriptions(README_PATH)
     if bare_entries:
         active_flags["BARE_ENTRY"] = [f"README.md:{line}" for line, _ in bare_entries]
+    misordered_sections = check_readme_ordering(README_PATH)
+    if misordered_sections:
+        active_flags["MISORDERED"] = misordered_sections
     if config_errors:
         active_flags["CONFIG_ERROR"] = config_errors
 

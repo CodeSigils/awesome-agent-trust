@@ -39,6 +39,7 @@ Projects listed on this index are checked by the repo validation script
 | Recent activity | Repository push within the last 12 months | Advisory soft flag; `pushed_at` is only a maintenance proxy |
 | Meaningful description | ≥15 characters describing what it does | Soft flag |
 | List entry format | `- [Name](url) - Description` (must include description after link) | Soft flag |
+| Category ordering | Display names are alphabetical within each category | **Hard failure** |
 
 **Hard failures** must be fixed before a PR can merge. If a repository is
 deleted or archived, remove it or replace it with a verified successor. API,
@@ -64,6 +65,8 @@ place where a reviewed signal may be waived.
   sections.
 - **Cross-cutting projects** go in whichever category best describes
   their primary purpose.
+- **Alphabetical ordering** is case-insensitive by displayed project name
+  within each category. Position does not represent rank or endorsement.
 - **Standards and specifications** may receive narrowly documented exceptions
   in `.github/repo-exceptions.json`. Repository-name keywords are not evidence
   of standards status or foundation affiliation.
@@ -80,6 +83,18 @@ Projects are excluded if they:
 - Have no public repository or documentation
 - Are purely commercial products without an open-source component
 - Are duplicates of another listed project with the same scope
+
+## Ongoing Review
+
+Inclusion is not permanent. Remove or update an entry when current evidence
+shows that it no longer meets these criteria, its destination has become
+unsafe, or a repository has moved. Contested removals should cite evidence and,
+unless the destination is clearly unsafe or gone, allow the affected maintainer
+a reasonable opportunity to respond.
+
+Changes to the category taxonomy require prior issue discussion and maintainer
+approval. A new category should describe a distinct reader need and contain at
+least three qualifying entries.
 
 ## What This List Is Not
 
