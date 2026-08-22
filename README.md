@@ -64,6 +64,7 @@ Cryptographic identity for agents — DIDs, Ed25519, zero-trust frameworks.
 - [Agent Identity Protocol (AIP)](https://github.com/openagentidentityprotocol/agentidentityprotocol) - Zero-trust security layer for AI agents. Policy enforcement proxy for MCP with human-in-the-loop.
 - [agent-auth](https://github.com/kanoniv/agent-auth) - Cryptographic identity and delegation for AI agents.
 - [agentdnai](https://github.com/smouj/agentdnai) - Verifiable digital identity, scoped permissions, and audit trails for AI agents.
+- [AgentLair](https://github.com/piiiico/agentlair) - Per-session Ed25519-signed JWT (AAT) for AI agent identity. JWKS endpoint, audit trail, and behavioral trust signals. MIT licensed.
 - [AGNTCY Identity](https://github.com/agntcy/identity) - Linux Foundation project. Onboard, create, and verify identities for Agents, MCP Servers, and multi-agent systems.
 - [Alibaba Open Agent Auth](https://github.com/alibaba/open-agent-auth) - Enterprise framework implementing Agent Operation Authorization protocol with cryptographic identity binding and fine-grained permission verification.
 - [ASI](https://github.com/hazennik/asi) - Minimal cryptographic identity standard for agent skill ecosystems. Ed25519 + DID:key + JCS bundling.
