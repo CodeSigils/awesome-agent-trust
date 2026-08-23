@@ -58,6 +58,9 @@ so scheduled runs emphasize new and resolved signals. It is derived monitoring
 state, not an approval or exception. `.github/repo-exceptions.json` is the only
 place where a reviewed signal may be waived.
 
+The scheduled dependency-freshness workflow reports pinned GitHub Action SHA
+drift. It is advisory and does not replace Dependabot review.
+
 ## Categorization Rules
 
 - **One project, one category.** List the project in its primary

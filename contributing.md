@@ -48,6 +48,7 @@ Before opening a pull request, confirm each item:
 - [ ] `npm ci` completes from the committed lockfile
 - [ ] `npm run lint` passes locally
 - [ ] `npm test` passes locally
+- [ ] `python3 .github/scripts/check-markdown-links.py` passes locally
 - [ ] `python3 .github/scripts/validate-repos.py` passes locally
 
 ## Quality criteria
@@ -86,6 +87,7 @@ Every pull request is checked by two required CI jobs:
 - No trailing slashes on URLs
 - No duplicate links
 - Valid table of contents
+- Repository-relative Markdown links resolve
 
 **validate-repos** — checks every listed repository:
 - Exists and is not archived (hard failure — blocks merge)
@@ -103,6 +105,7 @@ locally before submitting:
 npm ci
 npm run lint
 npm test
+python3 .github/scripts/check-markdown-links.py
 python3 .github/scripts/validate-repos.py
 ```
 
