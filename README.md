@@ -88,6 +88,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 - [cordum](https://github.com/cordum-io/cordum) - Open agent control plane. Govern autonomous AI agents with pre-execution policy enforcement, approval gates, and audit.
 - [cullis](https://github.com/cullis-security/cullis) - Zero-trust governance for autonomous AI agents in regulated organizations. Self-hosted gateway with verified identity.
 - [DashClaw](https://github.com/ucsandman/DashClaw) - Governance runtime for AI agents. Intercept actions, enforce guard policies, require approvals, produce audit trails.
+- [decision-os-min](https://github.com/Aliipou/decision-os-min) - Python execution-governance runtime that signs an action-bound decision, spends a one-time capability at a PEP, and keeps OPA/Cedar as replaceable grant/deny PDPs.
 - [defenseclaw](https://github.com/cisco-ai-defense/defenseclaw) - Cisco's security governance for agentic AI.
 - [Deterministic Agent Control Protocol](https://github.com/elliot35/deterministic-agent-control-protocol) - Governance gateway for AI agents. Bounded, auditable, session-aware control with MCP proxy.
 - [faramesh-core](https://github.com/faramesh/faramesh-core) - Governance-as-Code for AI agents. Declarative constraints with deterministic enforcement.
