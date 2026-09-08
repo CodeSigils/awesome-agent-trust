@@ -98,6 +98,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 - [Preventra](https://github.com/Preventra/preventra) - Governance, trust, and identity for the agentic economy. Public infrastructure.
 - [superagentX](https://github.com/superagentxai/superagentx) - Policy-driven autonomous AI agents. Unified Control Plane with centralized tools, identity, and governance.
 - [veldt-kya](https://github.com/veldtlabs/veldt-kya) - KYA (Know Your Agents). Open-source trust, governance, and evidentiary assurance for autonomous systems.
+- [YYLO](https://github.com/yylo-dev/yylo) - Command-line orchestrator for coding agents with typed task, validation, merge, and release-readiness boundaries; the merge queue owns risk-based review, giving high-risk changes two sequential reviewers on one frozen candidate, and workflow runs retain declared receipt hashes and terminal manifests.
 
 ---
 
