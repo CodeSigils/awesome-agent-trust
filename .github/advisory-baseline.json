@@ -1,5 +1,5 @@
 {
-  "reviewed": "2026-08-23",
+  "reviewed": "2026-09-14",
   "advisories": {
     "INACTIVE": ["Ineedsomuchhelp/AINRP"],
     "LOW_STARS": [
@@ -21,7 +21,7 @@
       "route-ans/route-ans", "saluca-labs/soulguard", "selfradiance/actionwarrant",
       "smouj/agentdnai", "sunilgentyala/AegisSwarm-Core", "trailingai/trailing",
       "veldtlabs/veldt-kya", "vkobel/confidential-computing-expert-skill",
-      "yourclaw/clawguard", "piiiico/agentlair"
+      "yourclaw/clawguard"
     ],
     "NO_LICENSE": [
       "AgnesDevita/DecisionNotary", "DAMONBLUE2021/Agentoes",
