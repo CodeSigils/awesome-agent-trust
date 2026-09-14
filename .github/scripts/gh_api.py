@@ -65,7 +65,9 @@ def fetch_json(
             last_exc = exc
             if attempt < max_retries - 1:
                 continue
-    raise last_exc  # type: ignore[misc]
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError(f"no request attempted (max_retries={max_retries})")
 
 
 def mask_token(text: str, token: str | None) -> str:

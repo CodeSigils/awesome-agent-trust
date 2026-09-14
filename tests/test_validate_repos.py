@@ -53,6 +53,19 @@ class CheckRepoTests(unittest.TestCase):
         with patch.object(validator, "fetch_json", side_effect=URLError("offline")):
             self.assertEqual(validator.check_repo("owner/repo")["errors"], ["API_ERROR"])
 
+    def test_non_string_pushed_at_is_ignored_not_crashing(self) -> None:
+        metadata = {
+            "stargazers_count": 10,
+            "description": "a description long enough",
+            "pushed_at": 12345,
+            "archived": False,
+            "license": {"spdx_id": "MIT"},
+        }
+        with patch.object(validator, "fetch_json", return_value=metadata):
+            result = validator.check_repo("owner/repo")
+        self.assertNotIn("INACTIVE", result["errors"])
+        self.assertEqual(result["last_commit_days_ago"], None)
+
     def test_quality_and_archive_signals(self) -> None:
         metadata = {
             "stargazers_count": 2,
@@ -123,6 +136,38 @@ class ExceptionTests(unittest.TestCase):
             exceptions, errors = validator.load_exceptions(path)
         self.assertEqual(exceptions, {})
         self.assertTrue(any("must be a list" in error for error in errors))
+
+    def test_rejects_unhashable_repo_without_crashing(self) -> None:
+        payload = {
+            "exceptions": [{
+                "repo": ["owner", "repo"],
+                "checks": ["LOW_STARS"],
+                "reason": "This reason is long enough to be reviewed.",
+                "review_after": "2027-01-01",
+            }]
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "exceptions.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            exceptions, errors = validator.load_exceptions(path, today=date(2026, 1, 1))
+        self.assertEqual(exceptions, {})
+        self.assertTrue(any("invalid repository name" in error for error in errors))
+
+    def test_rejects_non_string_check_entries_without_crashing(self) -> None:
+        payload = {
+            "exceptions": [{
+                "repo": "owner/repo",
+                "checks": [1, "LOW_STARS"],
+                "reason": "This reason is long enough to be reviewed.",
+                "review_after": "2027-01-01",
+            }]
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "exceptions.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            exceptions, errors = validator.load_exceptions(path, today=date(2026, 1, 1))
+        self.assertEqual(exceptions, {})
+        self.assertTrue(any("must contain only strings" in error for error in errors))
 
 
 class BaselineTests(unittest.TestCase):
@@ -240,6 +285,12 @@ class GhApiTests(unittest.TestCase):
 
     def test_mask_token_returns_text_unchanged_without_token(self) -> None:
         self.assertEqual(gh_api.mask_token("plain output", None), "plain output")
+
+    def test_zero_retries_raises_runtime_error_not_none(self) -> None:
+        with patch.object(gh_api, "urlopen") as fake:
+            with self.assertRaises(RuntimeError):
+                gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=0)
+        fake.assert_not_called()
 
 
 class BaselineAuditTests(unittest.TestCase):

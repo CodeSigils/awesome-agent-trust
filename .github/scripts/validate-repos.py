@@ -68,12 +68,15 @@ def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str,
 
         if not isinstance(repo, str) or not re.fullmatch(r"[^/\s]+/[^/\s]+", repo):
             errors.append(f"{label}: invalid repository name")
-        if repo in exceptions:
+        elif repo in exceptions:
             errors.append(f"{label}: duplicate exception")
         if not isinstance(raw_checks, list):
             errors.append(f"{label}: checks must be a list")
             continue
         checks = set(raw_checks)
+        if not all(isinstance(check, str) for check in checks):
+            errors.append(f"{label}: checks must contain only strings")
+            continue
         unknown = checks - SOFT_ERRORS
         if unknown:
             errors.append(f"{label}: unsupported checks: {', '.join(sorted(unknown))}")
@@ -155,7 +158,7 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
     if result["stars"] < STAR_THRESHOLD:
         result["errors"].append("LOW_STARS")
 
-    if pushed_at:
+    if isinstance(pushed_at, str) and pushed_at:
         try:
             pushed = datetime.fromisoformat(pushed_at.replace("Z", "+00:00"))
             result["last_commit_days_ago"] = (now - pushed).days
