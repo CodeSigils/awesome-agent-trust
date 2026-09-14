@@ -21,7 +21,7 @@
       "route-ans/route-ans", "saluca-labs/soulguard", "selfradiance/actionwarrant",
       "smouj/agentdnai", "sunilgentyala/AegisSwarm-Core", "trailingai/trailing",
       "veldtlabs/veldt-kya", "vkobel/confidential-computing-expert-skill",
-      "yourclaw/clawguard"
+      "yourclaw/clawguard", "yylo-dev/yylo-benchmark"
     ],
     "NO_LICENSE": [
       "AgnesDevita/DecisionNotary", "DAMONBLUE2021/Agentoes",
