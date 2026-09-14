@@ -278,7 +278,8 @@ TEE-backed attestation, confidential computing, and hardware-enforced security.
 See [contributing.md](contributing.md) for submission guidelines, format
 requirements, and CI checks that run on every pull request.
 
-Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
+- Thanks to [piico](https://github.com/piico) for contributing AgentLair.
+- Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
 
 See [CRITERIA.md](CRITERIA.md) for the full inclusion criteria —
 relevance domains, quality gates (star threshold, activity, description),
