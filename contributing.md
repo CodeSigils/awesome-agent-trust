@@ -106,8 +106,9 @@ Every pull request is checked by three CI jobs:
 **secret-scan** — scans every push and pull request for accidentally
 committed secrets:
 - Runs gitleaks (SHA-pinned action, read-only `contents` scope)
-- Fails the check when a secret is detected, so leaked tokens are rejected
-  before they can reach history
+- Fails the check when a secret is detected. Push scans happen after commits
+  reach GitHub; exposed credentials must be revoked or rotated. Making this
+  job a required branch-protection check remains roadmap work.
 
 Run the corresponding installation, test, lint, and live validation commands
 locally before submitting:

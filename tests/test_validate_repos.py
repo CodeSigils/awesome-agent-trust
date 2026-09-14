@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -37,6 +38,13 @@ class ExtractReposTests(unittest.TestCase):
 
 
 class CheckRepoTests(unittest.TestCase):
+    def test_timezone_missing_is_api_error(self) -> None:
+        metadata = {"stargazers_count": 10, "description": "Meaningful description",
+                    "license": {"spdx_id": "MIT"}, "pushed_at": "2026-09-01T00:00:00"}
+        with patch.object(validator, "fetch_json", return_value=metadata):
+            result = validator.check_repo("owner/repo")
+        self.assertEqual(result["errors"], ["API_ERROR"])
+
     def test_404_is_not_found(self) -> None:
         error = HTTPError("url", 404, "missing", {}, None)
         with patch.object(validator, "fetch_json", side_effect=error):
@@ -97,6 +105,16 @@ class TokenTests(unittest.TestCase):
 
 
 class ExceptionTests(unittest.TestCase):
+    def test_malformed_reason_and_nested_checks_report_errors(self) -> None:
+        for change in ({"reason": None}, {"reason": 123}, {"checks": [["LOW_STARS"]]},
+                       {"checks": [{"name": "LOW_STARS"}]}):
+            with self.subTest(change=change):
+                item = {"repo": "owner/repo", "checks": ["LOW_STARS"],
+                        "reason": "Evidence sufficient for review", "review_after": "2027-01-01"}
+                with patch.object(Path, "read_text", return_value=json.dumps({"exceptions": [item | change]})):
+                    _, errors = validator.load_exceptions(Path("unused"), today=date(2026, 9, 14))
+                self.assertTrue(errors)
+
     def test_loads_current_evidence_backed_exception(self) -> None:
         payload = {
             "exceptions": [{
@@ -341,6 +359,23 @@ class BaselineAuditTests(unittest.TestCase):
             )
         fake.assert_not_called()
         self.assertEqual((resolved, still_below, unavailable, api_errors), ([], [], [], []))
+
+
+class FreshnessWorkflowTests(unittest.TestCase):
+    def test_report_preserves_output_and_exit_status(self) -> None:
+        workflow = (SCRIPTS_DIR.parent / "workflows" / "dependency-freshness.yml").read_text()
+        body = workflow.split("        run: |\n", 1)[1]
+        body = "\n".join(line[10:] for line in body.splitlines())
+        for status in (0, 1, 2):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
+                summary = Path(directory) / "summary.md"
+                script = body.replace("/tmp/validator.log", str(Path(directory) / "validator.log"))
+                stub = f'python3() {{ echo "validator output"; return {status}; }}\n'
+                result = subprocess.run(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", stub + script],
+                                        env={**os.environ, "GITHUB_STEP_SUMMARY": str(summary)}, capture_output=True, text=True)
+                self.assertEqual(result.returncode, status, result.stderr)
+                self.assertIn("validator output", summary.read_text())
+                self.assertEqual("Validation failed" in summary.read_text(), status != 0)
 
 
 if __name__ == "__main__":

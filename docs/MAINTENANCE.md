@@ -67,7 +67,7 @@ validate.yml: push / pull_request · weekly cron · manual dispatch
         +-- validate-repos.py           -> advisory drift summary
                         |
                         v
-            workflow summary (advisory only, never blocks)
+            workflow summary (soft advisories do not fail)
 
   every week -> dependabot.yml -> PRs for stale Actions/npm deps
 
@@ -85,7 +85,8 @@ Three layers of automation exist, all maintained by the repository owner:
   push.
 - **Reporting** — `dependency-freshness.yml` runs every Monday and writes an
   advisory-only summary (pinned Action SHA drift + advisory drift) to the
-  workflow summary page. It never blocks anything.
+  workflow summary page. Soft advisories do not fail the run; hard validation
+  failures and incomplete execution do. This workflow is not a required PR check.
 - **Maintainer tools** — the scripts in `.github/scripts/` run in CI but are
   designed to be run locally; `--baseline-audit` is the quarterly star
   audit.
@@ -107,7 +108,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 27 regression tests for the validator and gh_api helpers         |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 30 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -151,8 +152,12 @@ appends both reports to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
    "Repository advisory drift", showing `NEW_*`, `KNOWN`, `RESOLVED`, and
    `ACCEPTED` counts.
 
-Both steps are advisory: no exit code blocks anything. Their purpose is to
-give the maintainer a single Monday page to triage.
+Soft repository advisories remain non-blocking. The repository-report step
+uses Bash with `pipefail`, preserves the validator output in the summary even
+on failure, and propagates a nonzero exit status for hard failures or crashes.
+The action-freshness script reports unresolved lookups as `unknown`; these
+require follow-up and do not establish freshness. The workflow is not a
+required PR check.
 
 ### dependabot.yml — dependency updates
 
@@ -362,9 +367,11 @@ is incomplete and must not be treated as evidence that a repository is gone.
 - `NEW_*` advisories: review evidence, then baseline, exception, or remove the
   entry according to [CRITERIA.md](../CRITERIA.md); advisories alone do not
   block a merge.
-- `secret-scan` failures: treat as a possible credential exposure. Revoke or
-  rotate the credential, preserve the workflow evidence, and follow
-  [SECURITY.md](../SECURITY.md).
+- `secret-scan` failures: inspect the log to distinguish a finding from scanner
+  or infrastructure failure. For a confirmed exposed credential, revoke or
+  rotate it and follow [SECURITY.md](../SECURITY.md). For scanner failures,
+  restore scanning and rerun; an incomplete scan is not a clean result. Push
+  scans occur after commits reach GitHub and cannot prevent initial exposure.
 - Action or npm freshness reports: open/update a dependency PR and let the
   normal validation checks verify it; do not edit generated advisory state as
   a substitute for review.
@@ -391,7 +398,7 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 27 tests
+Expected healthy output: `npm run lint` reports successful linting; all 30 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -414,11 +421,13 @@ As of 2026-09-14:
   every Monday; `dependabot.yml` opens weekly update PRs.
 - Validator state: 0 hard failures, 0 new advisories, 65 known, 4 accepted
   exceptions; `--baseline-audit`: 0 resolved, 43 still below.
-- The roadmap has no open items.
+- Previously planned work is complete; the roadmap also tracks deferred
+  considerations, including requiring `secret-scan` in branch protection.
 
 Last reviewed: 2026-09-14.
 
 <!-- Revision history:
+- 2026-09-14: fix malformed-input handling, preserve reporting failures, and clarify secret-scan triage; 30 regression tests
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance

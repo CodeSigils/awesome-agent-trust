@@ -23,11 +23,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/report-action-freshness.py
       - name: Report repository advisory drift
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 .github/scripts/validate-repos.py 2>&1 | tee /tmp/validator.log
+          validation_status=0
+          python3 .github/scripts/validate-repos.py 2>&1 | tee /tmp/validator.log || validation_status=$?
           echo "### Repository advisory drift" >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
           cat /tmp/validator.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$validation_status" -ne 0 ]; then
+            echo "Validation failed (exit $validation_status); inspect the report for hard failures or incomplete execution." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$validation_status"

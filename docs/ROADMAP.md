@@ -41,13 +41,22 @@ Intentional automation gaps (not currently planned for implementation):
 
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-So as of 2026-09-14: PRs are fully gated automatically (format, repo liveness, and secrets), dependency freshness is reported automatically, star/license/activity drift is reported automatically every Monday, and the `LOW_STARS` baseline audit runs as a single command (`--baseline-audit`). What remains manual is the triage of those reports — which stays maintainer-made by governance design.
+As of 2026-09-14, required PR checks cover format and repository validation.
+Secret scanning runs but is not yet a required branch-protection check;
+administrators can bypass protection. Dependency freshness and advisory drift
+are reported weekly, and the `LOW_STARS` audit runs with `--baseline-audit`.
+Retention and waiver decisions remain maintainer-made.
 
 ## Open Items
 
 All previously planned items have been implemented.
 
-- 2026-09-14: automated secret scanning on pull requests — gitleaks runs as a third `validate.yml` job (SHA-pinned, `contents: read`), so every push and PR is scanned before a secret can reach history. The security review confirmed the existing history is clean; this closes the residual contributor-mistake risk.
+- 2026-09-14: Gitleaks runs as a third `validate.yml` job (SHA-pinned,
+  `contents: read`). Push scans run after commits reach GitHub; they cannot
+  prevent initial exposure or guarantee that all secrets are detected.
+- 2026-09-14: malformed exception values and timezone-free timestamps now
+  produce validation errors; freshness reporting retains diagnostics and
+  fails on hard validation errors or crashes. Soft advisories remain non-blocking.
 
 ## Future considerations
 
@@ -107,6 +116,7 @@ a current compromise or CI failure:
 Last reviewed: 2026-09-14.
 
 <!-- Revision history:
+- 2026-09-14: completed medium audit fixes for input handling, report failure propagation, and accurate security documentation
 - 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
 - 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
 - 2026-09-14: implemented open item 1 (gitleaks in validate.yml); roadmap fully implemented

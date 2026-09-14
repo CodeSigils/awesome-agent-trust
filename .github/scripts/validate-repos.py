@@ -62,7 +62,7 @@ def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str,
             continue
         repo = item.get("repo", "")
         raw_checks = item.get("checks", [])
-        reason = item.get("reason", "").strip()
+        reason = item.get("reason", "")
         review_after = item.get("review_after", "")
         label = repo or f"entry {index}"
 
@@ -73,16 +73,16 @@ def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str,
         if not isinstance(raw_checks, list):
             errors.append(f"{label}: checks must be a list")
             continue
-        checks = set(raw_checks)
-        if not all(isinstance(check, str) for check in checks):
+        if not all(isinstance(check, str) for check in raw_checks):
             errors.append(f"{label}: checks must contain only strings")
             continue
+        checks = set(raw_checks)
         unknown = checks - SOFT_ERRORS
         if unknown:
             errors.append(f"{label}: unsupported checks: {', '.join(sorted(unknown))}")
         if not checks:
             errors.append(f"{label}: checks must not be empty")
-        if len(reason) < 20:
+        if not isinstance(reason, str) or len(reason.strip()) < 20:
             errors.append(f"{label}: reason must contain reviewable evidence")
         try:
             review_date = date.fromisoformat(review_after)
@@ -161,6 +161,8 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
     if isinstance(pushed_at, str) and pushed_at:
         try:
             pushed = datetime.fromisoformat(pushed_at.replace("Z", "+00:00"))
+            if pushed.tzinfo is None:
+                raise ValueError("pushed_at must include a timezone")
             result["last_commit_days_ago"] = (now - pushed).days
             if result["last_commit_days_ago"] > 365:
                 result["errors"].append("INACTIVE")
