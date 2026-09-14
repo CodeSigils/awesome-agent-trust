@@ -28,37 +28,21 @@ As of 2026-09-14, the repo has three pieces of automation, all in `.github/`:
 | Automation | Trigger | What it does |
 |------------|---------|--------------|
 | `validate.yml` — 2 jobs | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN` |
-| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Advisory only |
+| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Also runs `validate-repos.py` and writes the advisory drift summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) to the same summary. Advisory only |
 | `dependabot.yml` | weekly (GitHub-managed) | Opens PRs for out-of-date github-actions and npm dependencies |
 
 Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
 
 What automation does NOT exist yet (the gap this roadmap closes):
 
-- **No scheduled star/liveness reporting.** The weekly cron in `validate.yml` exists, but it is designed for PR gating; the advisory summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) is only printed when someone runs `validate-repos.py` manually — or a PR triggers it. That is roadmap item 1: the two Monday crons exist, but the "report drift
-to a summary page" step is not wired to the schedule yet.
-- **No baseline audit helper** (roadmap item 3) — clearing resolved `LOW_STARS` entries is still done by hand (as with the recent `tooltrust-directory` / `helixid` / `ai-trust` clears).
+- **No baseline audit helper** (roadmap item 2) — clearing resolved `LOW_STARS` entries is still done by hand (as with the recent `tooltrust-directory` / `helixid` / `ai-trust` clears).
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 1 turns into a weekly automatic check.
+So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is reported automatically, and star/license/activity drift is reported automatically every Monday (open item 1, implemented this pass). What remains manual is the triage of that report — which stays maintainer-made by governance design.
 
 ## Open Items
 
-### 1. Scheduled validator report
-
-**What:** Extend the weekly `dependency-freshness.yml` workflow to also run
-`python3 .github/scripts/validate-repos.py` and write the
-`NEW_*` / `RESOLVED ADVISORIES` / `ACCEPTED EXCEPTIONS` summary into
-`GITHUB_STEP_SUMMARY`.
-
-**Why:** Star counts and repository liveness drift continuously, but the
-validator is currently only run on demand or on PRs. The existing weekly
-cron already runs with `contents: read` and a token, so adding a second
-step makes the inspection cycle automatic: a one-screen Monday report of
-which projects crossed the ≥5-star threshold and which new flags appeared,
-instead of a manual loop that tends to go stale between contributions.
-
-### 2. Standardize the below-threshold triage rule
+### 1. Standardize the below-threshold triage rule
 
 **What:** Add an explicit rule to [contributing.md](../contributing.md) (and
 point to it from [CRITERIA.md](../CRITERIA.md)): a sub-5-star repo may be
@@ -74,7 +58,7 @@ the rule itself is not written down anywhere. Codifying it removes the
 guesswork from every `NEW_LOW_STARS` review and matches the criteria's
 existing position that "stars alone never establish quality."
 
-### 3. Bulk star-audit helper
+### 2. Bulk star-audit helper
 
 **What:** Add a `--baseline-audit` mode to `.github/scripts/validate-repos.py`
 that iterates the `LOW_STARS` entries in the advisory baseline, fetches
@@ -90,7 +74,7 @@ seconds, and catches resolved advisories automatically.
 
 ## Backlog
 
-### 4. Configurable star threshold
+### 3. Configurable star threshold
 
 **What:** Extract the hardcoded 5-star threshold in
 `.github/scripts/validate-repos.py` into a named constant (or config
@@ -104,9 +88,9 @@ the check logic.
 
 | Cadence | Action |
 |---------|--------|
-| Weekly | `dependency-freshness.yml` run — review the validator summary once item 1 is in place |
+| Weekly | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) |
 | Monthly | Triage new advisories from reported runs: resolve to baseline, exception, or removal |
 | Quarterly | Full baseline audit: remove entries that crossed ≥5 stars, re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
-| On PRs with advisory signals | Apply the adoption-evidence rule from item 2; ask the contributor for package-registry download data when relevant |
+| On PRs with advisory signals | Apply the adoption-evidence rule from item 1; ask the contributor for package-registry download data when relevant |
 
 Last reviewed: 2026-09-14.
