@@ -36,10 +36,10 @@ When a change lands, update at minimum:
 ## System overview
 
 ```text
-push / pull_request · weekly cron · manual dispatch
+validate.yml: push / pull_request · weekly cron · manual dispatch
                         |
                         v
-              validate.yml  (CI gate -- blocks merge on failure)
+              validate.yml  (protected PR gate)
         +---------------+------------------+
         v               v                  v
   Job 1:           Job 2:            Job 3:
@@ -51,9 +51,11 @@ push / pull_request · weekly cron · manual dispatch
         +---------------+------------------+
                         |
                         v
-                merged into main
+          protected PR merge eligible when checks pass
 
-  every Monday 06:30 UTC -> dependency-freshness.yml
+  dependency-freshness.yml: Monday 06:30 UTC · manual dispatch
+                        |
+                        v
         +-- report-action-freshness.py -> Action SHA table
         +-- validate-repos.py           -> advisory drift summary
                         |
@@ -70,8 +72,10 @@ push / pull_request · weekly cron · manual dispatch
 
 Three layers of automation exist, all maintained by the repository owner:
 
-- **Gating** — `validate.yml` blocks every push and pull request until all
-  three jobs pass (format, repository liveness, secret scan).
+- **Gating** — `validate.yml` runs on every push and pull request. Protected
+  PR merges require the configured validation checks to pass; the workflow
+  itself does not merge changes or prevent an explicitly permitted direct
+  push.
 - **Reporting** — `dependency-freshness.yml` runs every Monday and writes an
   advisory-only summary (pinned Action SHA drift + advisory drift) to the
   workflow summary page. It never blocks anything.
@@ -380,7 +384,7 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` prints "Linting(1)"; all 27 tests
+Expected healthy output: `npm run lint` reports successful linting; all 27 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -414,4 +418,6 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: document full-history checkout required by the Gitleaks push-range scan
 - 2026-09-14: document workflow/script permissions and Python quality expectations
 - 2026-09-14: add before/after-action maintenance directive to prevent documentation drift
+- 2026-09-14: correct workflow diagram merge semantics, trigger labeling, and lint-output expectation
+- 2026-09-14: clarify that workflow execution and protected-merge enforcement are separate controls
 -->
