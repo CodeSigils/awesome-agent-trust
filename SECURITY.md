@@ -14,7 +14,7 @@ open a public issue on GitHub.
 
 Do **not** open a public issue if the vulnerability involves the GitHub Actions
 workflow itself, such as leaked CI logs or token exposure. Report privately to
-the repository owner via GitHub's security advisory tool.
+the repository owner via [GitHub's security advisory tool](https://github.com/CodeSigils/awesome-agent-trust/security/advisories/new).
 
 ## Commit Signing
 

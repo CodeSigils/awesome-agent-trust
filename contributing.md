@@ -62,7 +62,9 @@ following are positive quality signals, not interchangeable automatic gates:
 3. Is a Linux Foundation or similarly governed open-source project
 4. Has documented real-world usage or adoption
 
-Star counts are discovery metadata, not proof of quality. A sub-5-star project
+Star counts are discovery metadata for research and observation, never a
+gate: they do not block inclusion and are not proof of quality. A sub-5-star
+project
 may be accepted when its submission presents stronger, independently
 checkable evidence — package-registry downloads, an active specification
 process, foundation governance, or documented real-world adoption. The

@@ -47,12 +47,12 @@ All previously planned items have been implemented.
 
 ## Review Cadence
 
-| Cadence                      | Action                                                                                                                                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Weekly                       | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`)                                                                                                      |
-| Monthly                      | Triage new advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                   |
-| Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): remove entries that crossed ≥5 stars, re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
-| On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                              |
+| Cadence                      | Action                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Weekly                       | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`)                                                                                                                                                                                                                           |
+| Monthly                      | Triage new advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                                        |
+| Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
+| On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
 
 Last reviewed: 2026-09-14.
 

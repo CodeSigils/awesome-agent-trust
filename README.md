@@ -283,10 +283,10 @@ requirements, and CI checks that run on every pull request.
 - Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
 
 See [CRITERIA.md](CRITERIA.md) for the full inclusion criteria —
-relevance domains, quality gates (star threshold, activity, description),
-categorization rules, and exclusion policies. Validation CI blocks missing,
-archived, or unverifiable repositories and reports other quality signals for
-human review.
+relevance domains, quality signals (star count, activity, and description are
+advisory observations, never blocking), categorization rules, and exclusion
+policies. Validation CI blocks missing, archived, or unverifiable repositories
+and reports other quality signals for human review.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for planned maintenance work and the
 review cadence for the list and its validation tooling.
