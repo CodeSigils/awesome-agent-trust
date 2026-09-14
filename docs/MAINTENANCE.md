@@ -113,7 +113,7 @@ privilege. Branch protection requires the first two jobs to pass; the
 | ---------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `awesome-lint`   | checkout -> setup-node (Node 24, npm cache) -> `npm ci` -> `npm run lint` -> `check-markdown-links.py`    | Bad list format, badges, TOC, descriptions, broken local links |
 | `validate-repos` | checkout -> `npm test` (validator unit tests) -> `validate-repos.py` with `GH_TOKEN: ${{ github.token }}` | Missing/archived repos, ordering, config errors                |
-| `secret-scan`    | checkout -> `gitleaks/gitleaks-action@<sha> # v3.0.0` with `GITHUB_TOKEN`                                 | An accidentally committed secret in the PR                     |
+| `secret-scan`    | full-history checkout (`fetch-depth: 0`) -> `gitleaks/gitleaks-action@<sha> # v3.0.0` with `GITHUB_TOKEN` | An accidentally committed secret in the PR                     |
 
 All action references are SHA-pinned with a `# vN` comment; the freshness
 workflow below reports when a pin falls behind its major tag.
@@ -222,6 +222,27 @@ or `update available` (or `unknown` when the API cannot answer — it never
 crashes the run). Output is a "GitHub Action freshness" table written to the
 workflow summary.
 
+### Python quality expectations
+
+The maintenance scripts use only the Python standard library at runtime. They
+use type annotations, docstrings, defensive input/API error handling, and a
+regression suite in `tests/test_validate_repos.py`. CI currently enforces
+Python behavior through `npm test` and the live validator; it does **not** run
+a Python formatter, linter, or static type checker. Do not imply that a clean
+CI run provides those additional guarantees.
+
+For every Python change, preserve the existing type-hint and error-handling
+style, add regression coverage for new branches or failure modes, and run:
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 -m compileall .github/scripts tests
+```
+
+Ruff (format/lint) and mypy or pyright (static typing) are possible future
+CI additions, but introducing them would require documenting and reviewing
+their configuration and dependency pins.
+
 ## Advisory state files
 
 Two maintainer-owned JSON files encode the review state. Contributors must
@@ -261,6 +282,18 @@ Current entries (all `LOW_STARS` unless noted):
 Use this section when transferring operational ownership. Account-specific
 values are intentionally not recorded here; verify them in the repository
 settings before the outgoing maintainer leaves.
+
+### What the maintainer can access
+
+The workflow definitions in `.github/workflows/` and automation code in
+`.github/scripts/` are versioned repository files. Anyone with repository read
+access can inspect or clone them; a maintainer with write access can propose
+changes through pull requests. Editing branch protection, Actions policies,
+repository variables, Dependabot settings, or other repository controls
+requires the corresponding administrative permission. GitHub secret values
+are never readable after creation—even by maintainers—so confirm that the
+incoming maintainer can use the configured secrets in Actions and has a secure
+process for replacing them when needed.
 
 ### Access and settings checklist
 
@@ -368,4 +401,6 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
+- 2026-09-14: document full-history checkout required by the Gitleaks push-range scan
+- 2026-09-14: document workflow/script permissions and Python quality expectations
 -->
