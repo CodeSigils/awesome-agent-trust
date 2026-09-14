@@ -43,11 +43,36 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Credentials & private keys
+*.key
+*.pem
+*.ppk
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+.netrc
+.npmrc
+.pypirc
+config-secrets.*
+secrets.*
+*.json.key
+
 # AI agent tooling (local state, plans, memory, indexes)
 .omo/
 .open-mem/
 .codegraph/
 .claude/settings.local.json
+.codex/
+.cursor/
+.gemini/
+.continue/
+.windsurf/
+.aider*
 
 # Local development
 .cache/
