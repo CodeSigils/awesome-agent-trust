@@ -193,5 +193,55 @@ class OrderingTests(unittest.TestCase):
             self.assertEqual(validator.check_readme_ordering(path), ["Projects"])
 
 
+class BaselineAuditTests(unittest.TestCase):
+    def test_groups_low_stars_entries_by_threshold(self) -> None:
+        baseline = {
+            ("LOW_STARS", "big/repo"),
+            ("LOW_STARS", "edge/repo"),
+            ("LOW_STARS", "little/repo"),
+            ("LOW_STARS", "gone/repo"),
+            ("LOW_STARS", "archived/repo"),
+            ("LOW_STARS", "broken/repo"),
+            ("INACTIVE", "ignored/repo"),
+        }
+        states = {
+            "big/repo": {"stars": 12, "errors": []},
+            "edge/repo": {"stars": validator.STAR_THRESHOLD, "errors": ["LOW_STARS"]},
+            "little/repo": {"stars": 3, "errors": ["LOW_STARS"]},
+            "gone/repo": {"stars": 0, "errors": ["NOT_FOUND"]},
+            "archived/repo": {"stars": 7, "errors": ["ARCHIVED"]},
+            "broken/repo": {"stars": 0, "errors": ["API_ERROR"], "detail": "offline"},
+        }
+
+        def fake_check(repo: str, **_: object) -> dict[str, object]:
+            state = states[repo]
+            return {
+                "repo": repo,
+                "stars": state["stars"],
+                "errors": state["errors"],
+                "detail": state.get("detail", ""),
+            }
+
+        with patch.object(validator, "check_repo", side_effect=fake_check):
+            resolved, still_below, unavailable, api_errors = validator.audit_low_stars(baseline)
+
+        self.assertEqual([entry["repo"] for entry in resolved], ["big/repo", "edge/repo"])
+        self.assertEqual([entry["repo"] for entry in still_below], ["little/repo"])
+        self.assertEqual([entry["repo"] for entry in unavailable], ["archived/repo", "gone/repo"])
+        self.assertEqual([entry["repo"] for entry in api_errors], ["broken/repo"])
+        self.assertEqual(
+            {entry["repo"]: entry["reason"] for entry in unavailable},
+            {"archived/repo": "ARCHIVED", "gone/repo": "NOT_FOUND"},
+        )
+
+    def test_audit_ignores_non_low_stars_advisories(self) -> None:
+        with patch.object(validator, "check_repo") as fake:
+            resolved, still_below, unavailable, api_errors = validator.audit_low_stars(
+                {("INACTIVE", "sleepy/repo")}
+            )
+        fake.assert_not_called()
+        self.assertEqual((resolved, still_below, unavailable, api_errors), ([], [], [], []))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -29,6 +29,7 @@ MAX_WORKERS = 8
 
 HARD_ERRORS = {"NOT_FOUND", "ARCHIVED", "API_ERROR", "CONFIG_ERROR", "MISORDERED"}
 SOFT_ERRORS = {"NO_LICENSE", "LOW_STARS", "INACTIVE", "WEAK_DESC", "BARE_ENTRY"}
+STAR_THRESHOLD = 5
 
 
 def extract_repos(path: Path) -> set[str]:
@@ -179,7 +180,7 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
         result["errors"].append("NO_LICENSE")
     if len(description) < 15:
         result["errors"].append("WEAK_DESC")
-    if result["stars"] < 5:
+    if result["stars"] < STAR_THRESHOLD:
         result["errors"].append("LOW_STARS")
 
     if pushed_at:
@@ -192,6 +193,38 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
             result["errors"].append("API_ERROR")
             result["detail"] = "GitHub returned an invalid pushed_at timestamp"
     return result
+
+
+def audit_low_stars(
+    baseline: set[tuple[str, str]],
+    *,
+    token: str | None = None,
+    now: datetime = NOW,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Group LOW_STARS baseline entries by their current star status."""
+    repos = sorted({repo for check, repo in baseline if check == "LOW_STARS"})
+    resolved: list[dict[str, Any]] = []
+    still_below: list[dict[str, Any]] = []
+    unavailable: list[dict[str, Any]] = []
+    api_errors: list[dict[str, Any]] = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        for result in executor.map(lambda repo: check_repo(repo, token=token, now=now), repos):
+            entry = {"repo": result["repo"], "stars": result["stars"]}
+            if "NOT_FOUND" in result["errors"] or "ARCHIVED" in result["errors"]:
+                entry["reason"] = "NOT_FOUND" if "NOT_FOUND" in result["errors"] else "ARCHIVED"
+                unavailable.append(entry)
+            elif "API_ERROR" in result["errors"]:
+                entry["detail"] = result["detail"]
+                api_errors.append(entry)
+            elif result["stars"] >= STAR_THRESHOLD:
+                resolved.append(entry)
+            else:
+                still_below.append(entry)
+    resolved.sort(key=lambda item: (-item["stars"], item["repo"]))
+    still_below.sort(key=lambda item: (-item["stars"], item["repo"]))
+    unavailable.sort(key=lambda item: item["repo"])
+    api_errors.sort(key=lambda item: item["repo"])
+    return resolved, still_below, unavailable, api_errors
 
 
 def check_readme_descriptions(path: Path) -> list[tuple[int, str]]:
@@ -249,7 +282,48 @@ def compare_advisories(
     return current, current - baseline, baseline - current if complete else set()
 
 
+def run_baseline_audit() -> int:
+    """Print which LOW_STARS baseline entries have crossed the star threshold."""
+    baseline, config_errors = load_advisory_baseline(BASELINE_PATH)
+    if config_errors:
+        for error in config_errors:
+            print(error)
+        return 1
+    low_stars = {repo for check, repo in baseline if check == "LOW_STARS"}
+    print(f"=== LOW_STARS baseline audit: {len(low_stars)} repositories ===\n")
+    resolved, still_below, unavailable, api_errors = audit_low_stars(
+        baseline, token=resolve_token()
+    )
+    if resolved:
+        print(f"RESOLVED (>= {STAR_THRESHOLD} stars, clear from baseline):")
+        for entry in resolved:
+            print(f"  {entry['repo']} ({entry['stars']} stars)")
+        print()
+    if still_below:
+        print(f"STILL BELOW {STAR_THRESHOLD} stars:")
+        for entry in still_below:
+            print(f"  {entry['repo']} ({entry['stars']} stars)")
+        print()
+    if unavailable:
+        print("UNAVAILABLE (gone, renamed, or archived; do not clear):")
+        for entry in unavailable:
+            print(f"  {entry['repo']} ({entry['reason']})")
+        print()
+    if api_errors:
+        print("API ERRORS (metadata incomplete, re-check later):")
+        for entry in api_errors:
+            print(f"  {entry['repo']}: {entry['detail']}")
+        print()
+    print(
+        f"SUMMARY: {len(resolved)} resolved, {len(still_below)} still below, "
+        f"{len(unavailable)} unavailable, {len(api_errors)} api error(s)"
+    )
+    return 0
+
+
 def main() -> int:
+    if "--baseline-audit" in sys.argv[1:]:
+        return run_baseline_audit()
     repos = sorted(extract_repos(README_PATH))
     exceptions, config_errors = load_exceptions(EXCEPTIONS_PATH)
     baseline, baseline_errors = load_advisory_baseline(BASELINE_PATH)
