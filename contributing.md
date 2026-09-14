@@ -82,7 +82,7 @@ categorization rules, and quality gates applied by CI.
 
 ## CI Checks
 
-Every pull request is checked by two required CI jobs:
+Every pull request is checked by three CI jobs:
 
 **awesome-lint** — checks list format compliance:
 - Badge presence after the main heading
@@ -100,6 +100,12 @@ Every pull request is checked by two required CI jobs:
 - List entry in README includes a description after the link (soft flag)
 - Repository pushed to within the last 12 months (advisory soft flag;
   GitHub's `pushed_at` value is a maintenance proxy)
+
+**secret-scan** — scans every push and pull request for accidentally
+committed secrets:
+- Runs gitleaks (SHA-pinned action, read-only `contents` scope)
+- Fails the check when a secret is detected, so leaked tokens are rejected
+  before they can reach history
 
 Run the corresponding installation, test, lint, and live validation commands
 locally before submitting:
@@ -119,8 +125,9 @@ python3 .github/scripts/validate-repos.py
 3. Complete the pull request template with relevance and quality evidence.
 4. Explain any advisory signal or requested policy exception; do not edit the
    maintainer-owned baseline or exception registry yourself.
-5. Submit the pull request and resolve review conversations. Both required CI
-   jobs must pass before merge.
+5. Submit the pull request and resolve review conversations. All required CI
+   jobs must pass before merge — format checks (awesome-lint), repository
+   validation (validate-repos), and secret scanning (gitleaks).
 
 ## Removing or Replacing an Entry
 

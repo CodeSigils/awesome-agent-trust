@@ -27,5 +27,6 @@ Explain any requested exception explicitly.
 - [ ] I explained any new advisory signal or requested exception above.
 - [ ] I did not edit the maintainer-owned advisory baseline or exception
       registry unless a maintainer requested it.
-- [ ] `npm ci`, `npm run lint`, `npm test`, and
+- [ ] `npm ci`, `npm run lint`, `npm test`,
+      `python3 .github/scripts/check-markdown-links.py`, and
       `python3 .github/scripts/validate-repos.py` pass locally.

@@ -39,6 +39,7 @@ body:
         - Standards, Specifications & Foundations
         - Agent-to-Agent Protocols
         - Attestation & Confidential Computing
+        - Related Awesome Lists
     validations:
       required: true
   - type: textarea
