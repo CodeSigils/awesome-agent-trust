@@ -23,7 +23,11 @@ is documented drift.
 
 ## Current Automation State
 
-As of 2026-09-14, the repo has three pieces of automation, all in `.github/`:
+As of 2026-09-14, the repo has three pieces of automation, all in `.github/`.
+The per-file reference — what each automation file does, how the scripts
+work, and the maintenance commands — lives in
+[MAINTENANCE.md](MAINTENANCE.md), which must be updated alongside this
+roadmap whenever automation changes.
 
 | Automation                 | Trigger                                                                               | What it does                                                                                                                                                                                                                                                                                                                        |
 | -------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -60,4 +64,5 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
 - 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
 - 2026-09-14: implemented open item 1 (gitleaks in validate.yml); roadmap fully implemented
+- 2026-09-14: added MAINTENANCE.md as the per-file automation reference, linked from Current Automation State
 -->
