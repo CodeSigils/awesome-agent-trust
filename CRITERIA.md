@@ -25,21 +25,21 @@ The project must directly address one of these domains:
 Projects listed on this index are checked by the repo validation script
 (`.github/scripts/validate-repos.py`). Two severity levels exist:
 
-| Level | Trigger | Effect |
-|-------|---------|--------|
+| Level            | Trigger                                                                   | Effect                                                                         |
+| ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Hard failure** | Repository is missing or archived, or validation cannot complete reliably | CI fails — fix the entry or rerun after the infrastructure problem is resolved |
-| **Soft flag** | Below star threshold, no detected license, inactive, or weak description | Advisory signal — a human reviews the project in context |
+| **Soft flag**    | Below star threshold, no detected license, inactive, or weak description  | Advisory signal — a human reviews the project in context                       |
 
-| Gate | Threshold | Severity |
-|------|-----------|----------|
-| Repository exists | GitHub API returns 200 | **Hard failure** |
-| Not archived | `archived: false` in API response | **Hard failure** |
+| Gate                       | Threshold                                                                 | Severity                                                                       |
+| -------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Repository exists          | GitHub API returns 200                                                    | **Hard failure**                                                               |
+| Not archived               | `archived: false` in API response                                         | **Hard failure**                                                               |
 | Has an open-source license | GitHub detects a license, or a documented specification exception applies | Soft flag for existing entries; normally required for new software submissions |
-| Minimum adoption | ≥5 stars | Advisory soft flag; not a substitute for technical or governance evidence |
-| Recent activity | Repository push within the last 12 months | Advisory soft flag; `pushed_at` is only a maintenance proxy |
-| Meaningful description | ≥15 characters describing what it does | Soft flag |
-| List entry format | `- [Name](url) - Description` (must include description after link) | Soft flag |
-| Category ordering | Display names are alphabetical within each category | **Hard failure** |
+| Minimum adoption           | ≥5 stars                                                                  | Advisory soft flag; not a substitute for technical or governance evidence      |
+| Recent activity            | Repository push within the last 12 months                                 | Advisory soft flag; `pushed_at` is only a maintenance proxy                    |
+| Meaningful description     | ≥15 characters describing what it does                                    | Soft flag                                                                      |
+| List entry format          | `- [Name](url) - Description` (must include description after link)       | Soft flag                                                                      |
+| Category ordering          | Display names are alphabetical within each category                       | **Hard failure**                                                               |
 
 **Hard failures** must be fixed before a PR can merge. If a repository is
 deleted or archived, remove it or replace it with a verified successor. API,
@@ -51,7 +51,10 @@ early-stage, dormant, underspecified, or missing machine-detectable licensing.
 Human review may retain a project when stronger evidence exists, such as a
 recognized specification process, independent interoperability verification,
 documented adoption, or foundation governance. Stars alone never establish
-quality or trustworthiness.
+quality or trustworthiness. Contributors proposing a sub-5-star repository
+should document adoption evidence and request a
+`.github/repo-exceptions.json` entry rather than accepting the advisory
+flag. See `contributing.md` for details.
 
 The dated `.github/advisory-baseline.json` records already-observed soft flags
 so scheduled runs emphasize new and resolved signals. It is derived monitoring

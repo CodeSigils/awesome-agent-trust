@@ -38,7 +38,8 @@ Before opening a pull request, confirm each item:
       specification remains authoritative
 - [ ] If the repository has fewer than **5 stars**, the pull request provides
       stronger evidence such as independent verification, documented adoption,
-      foundation governance, or a recognized standards process
+      foundation governance, or a recognized standards process, and requests a
+      `.github/repo-exceptions.json` entry with that evidence
 - [ ] The description is a single sentence explaining what the project
       does — not marketing language
 - [ ] The entry is in the **correct category** (see CRITERIA.md for
@@ -61,11 +62,13 @@ following are positive quality signals, not interchangeable automatic gates:
 3. Is a Linux Foundation or similarly governed open-source project
 4. Has documented real-world usage or adoption
 
-Star counts are discovery metadata, not proof of quality. A low-star project
+Star counts are discovery metadata, not proof of quality. A sub-5-star project
 may be accepted when its submission presents stronger, independently
-checkable evidence. Any exception must be narrow and documented in
-`.github/repo-exceptions.json`. The separate advisory baseline only reduces
-repeated CI noise; it does not grandfather a project or override these criteria.
+checkable evidence — package-registry downloads, an active specification
+process, foundation governance, or documented real-world adoption. The
+exception must be narrow and documented in `.github/repo-exceptions.json`.
+The separate advisory baseline only reduces repeated CI noise; it does not
+grandfather a project or override these criteria.
 
 New advisory signals do not automatically reject a submission. Explain the
 signal in the pull request and provide stronger evidence for inclusion; the

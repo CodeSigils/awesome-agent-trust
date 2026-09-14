@@ -41,21 +41,9 @@ So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is 
 
 ## Open Items
 
-### 1. Standardize the below-threshold triage rule
-
-**What:** Add an explicit rule to [contributing.md](../contributing.md) (and
-point to it from [CRITERIA.md](../CRITERIA.md)): a sub-5-star repo may be
-recorded in `.github/repo-exceptions.json` with documented adoption
-evidence — package-registry downloads, an active specification process, or
-foundation governance — instead of being listed in the advisory baseline.
-
-**Why:** The mechanism already exists — three exceptions
-(`CSOAI-ORG/meok-aaif-agent-card-mcp`, `CSOAI-ORG/oasf-agent-directory-mcp`,
-`capiscio/capiscio-rfcs`) and the YYLO maintainers' standing offer of npm
-download data for `yylo-dev/yylo-benchmark` are working precedents — but
-the rule itself is not written down anywhere. Codifying it removes the
-guesswork from every `NEW_LOW_STARS` review and matches the criteria's
-existing position that "stars alone never establish quality."
+All previously planned items have been implemented. If new items arise,
+add them here with **What:** and **Why:** sections and reference the
+Review Cadence below.
 
 ## Review Cadence
 
@@ -64,6 +52,10 @@ existing position that "stars alone never establish quality."
 | Weekly                       | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`)                                                                                                      |
 | Monthly                      | Triage new advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                   |
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): remove entries that crossed ≥5 stars, re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
-| On PRs with advisory signals | Apply the adoption-evidence rule from item 1; ask the contributor for package-registry download data when relevant                                                                                     |
+| On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                              |
 
 Last reviewed: 2026-09-14.
+
+<!-- Revision history:
+- 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
+-->
