@@ -25,11 +25,11 @@ is documented drift.
 
 As of 2026-09-14, the repo has three pieces of automation, all in `.github/`:
 
-| Automation                 | Trigger                                                                               | What it does                                                                                                                                                                                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validate.yml` — 2 jobs    | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN`                                                   |
-| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Also runs `validate-repos.py` and writes the advisory drift summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) to the same summary. Advisory only |
-| `dependabot.yml`           | weekly (GitHub-managed)                                                               | Opens PRs for out-of-date github-actions and npm dependencies                                                                                                                                                                                                           |
+| Automation                 | Trigger                                                                               | What it does                                                                                                                                                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validate.yml` — 3 jobs    | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN`. Job 3: `gitleaks` scans every push/PR for accidentally committed secrets (SHA-pinned, `contents: read` only) |
+| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Also runs `validate-repos.py` and writes the advisory drift summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) to the same summary. Advisory only                                                             |
+| `dependabot.yml`           | weekly (GitHub-managed)                                                               | Opens PRs for out-of-date github-actions and npm dependencies                                                                                                                                                                                                                                                                       |
 
 Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
 
@@ -37,15 +37,13 @@ What automation does NOT exist yet (the gap this roadmap closes):
 
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is reported automatically, star/license/activity drift is reported automatically every Monday, and the `LOW_STARS` baseline audit runs as a single command (`--baseline-audit`). What remains manual is the triage of those reports — which stays maintainer-made by governance design.
+So as of 2026-09-14: PRs are fully gated automatically (format, repo liveness, and secrets), dependency freshness is reported automatically, star/license/activity drift is reported automatically every Monday, and the `LOW_STARS` baseline audit runs as a single command (`--baseline-audit`). What remains manual is the triage of those reports — which stays maintainer-made by governance design.
 
 ## Open Items
 
-### 1. Automated secret scanning on pull requests
+All previously planned items have been implemented.
 
-**What:** Add a gitleaks step to `validate.yml` (SHA-pinned action, `read-only` scope, runs on PRs to main) so every pull request is scanned for accidentally committed secrets before they can reach history.
-
-**Why:** A security review (2026-09-14) confirmed the repo is secret-free — no `secrets.*` usage in workflows, token material masked before any script output, and a full-history scan of all 54 commits found zero secret literals. The one residual risk is contributor mistakes: nothing currently catches a token accidentally committed in a future PR. Scanning on PRs turns that into an automatic rejection instead of a history rewrite — the only fix that matters, since once a secret lands in history, removing it is a rewrite.
+- 2026-09-14: automated secret scanning on pull requests — gitleaks runs as a third `validate.yml` job (SHA-pinned, `contents: read`), so every push and PR is scanned before a secret can reach history. The security review confirmed the existing history is clean; this closes the residual contributor-mistake risk.
 
 ## Review Cadence
 
@@ -61,4 +59,5 @@ Last reviewed: 2026-09-14.
 <!-- Revision history:
 - 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
 - 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
+- 2026-09-14: implemented open item 1 (gitleaks in validate.yml); roadmap fully implemented
 -->
