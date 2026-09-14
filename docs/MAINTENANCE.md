@@ -90,14 +90,14 @@ Three layers of automation exist, all maintained by the repository owner:
 
 Governance documents the automation enforces:
 
-| File                                        | Role                                                      |
-| ------------------------------------------- | --------------------------------------------------------- |
-| [README.md](../README.md)                   | The list itself; the validator's input                    |
-| [CRITERIA.md](../CRITERIA.md)               | Inclusion criteria, quality gates, exclusion rules        |
-| [contributing.md](../contributing.md)       | Submission process, pre-submission checklist, PR guidance |
-| [SECURITY.md](../SECURITY.md)               | Reporting policy for vulnerabilities                      |
-| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Community standards                                       |
-| [ROADMAP.md](ROADMAP.md)                    | Planned work, review cadence, revision history            |
+| File                                        | Role                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------ |
+| [README.md](../README.md)                   | The list itself; the validator's input                                   |
+| [CRITERIA.md](../CRITERIA.md)               | Inclusion criteria, quality gates, exclusion rules                       |
+| [contributing.md](../contributing.md)       | Submission process, pre-submission checklist, PR guidance                |
+| [SECURITY.md](../SECURITY.md)               | Reporting policy for vulnerabilities                                     |
+| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Community standards; editorial rules for inclusion/removal disagreements |
+| [ROADMAP.md](ROADMAP.md)                    | Planned work, review cadence, revision history                           |
 
 ## Workflows
 
