@@ -39,6 +39,7 @@ endorses their security claims.
 - [Agent-to-Agent Protocols](#agent-to-agent-protocols)
 - [Attestation & Confidential Computing](#attestation--confidential-computing)
 - [Related Awesome Lists](#related-awesome-lists)
+- [Maintaining](#maintaining)
 
 ---
 
@@ -274,6 +275,15 @@ TEE-backed attestation, confidential computing, and hardware-enforced security.
 
 ---
 
+## Maintaining
+
+See [docs/MAINTENANCE.md](docs/MAINTENANCE.md) for how this repository is
+automated — every workflow, script, and advisory file, what it does and how it
+works, plus the maintenance commands.
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for planned maintenance work and the
+review cadence for the list and its validation tooling.
+
 ## Contributing
 
 See [contributing.md](contributing.md) for submission guidelines, format
@@ -287,9 +297,6 @@ relevance domains, quality signals (star count, activity, and description are
 advisory observations, never blocking), categorization rules, and exclusion
 policies. Validation CI blocks missing, archived, or unverifiable repositories
 and reports other quality signals for human review.
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for planned maintenance work and the
-review cadence for the list and its validation tooling.
 
 [![CC0 1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 
