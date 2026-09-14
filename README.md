@@ -133,7 +133,7 @@ Public registries, trust scoring, signed receipts, and verifiable attestation.
 - [attestplane](https://github.com/attestplane/attestplane) - Verifiable audit substrate designed to support AI-agent record-keeping requirements.
 - [bootproof](https://github.com/bootproof/bootproof) - Zero-trust supervisor that boots any repository or agent artifact to a verifiable, known-good state.
 - [halo-record](https://github.com/bkuan001/halo-record) - Tamper-evident runtime records for AI agents. Hash-chained, dependency-free, verifiable by anyone.
-- [hvtracker](https://github.com/YugantM/hvtracker) - AI Agent Trust Registry. Independent, evidence-based trust scores for 172+ open-source AI agents.
+- [hvtracker](https://github.com/YugantM/hvtracker) - AI Agent Trust Registry. Independent, evidence-based trust scores for 1.3K+ open-source AI agents and MCP servers.
 - [kairon-protocol](https://github.com/berkay-aktas/kairon-protocol) - Attestation protocol for AI coding agents. Turns completed tasks into verifiable receipts.
 - [logpose](https://github.com/logpose-dev/logpose) - Verifiable reputation + attestation SDK for AI agents.
 - [mimir](https://github.com/enchanter-ai/mimir) - Verifiable provenance for MCP tool-call results. Signed envelopes + quality scoring.
@@ -236,7 +236,7 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 - [A2A Go](https://github.com/go-a2a/a2a-go) - Go implementation of the A2A protocol for agent interoperability.
 - [A2A Rust](https://github.com/tomtom215/a2a-rust) - Type-safe, async Rust SDK for the Agent2Agent (A2A) protocol.
 - [Agent Identity Protocol (AIP) draft](https://github.com/originlayer/agent-identity-protocol) - Concept draft of AIP. Governance layer for autonomous agents covering identity, permissions, audit.
-- [Agent2Agent (A2A)](https://github.com/a2aproject/A2A) - Google's open protocol enabling communication and interoperability between agentic applications. 24,600+★.
+- [Agent2Agent (A2A)](https://github.com/a2aproject/A2A) - Google's open protocol enabling communication and interoperability between agentic applications.
 - [Agentic Commerce Protocol (ACP)](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) - Open standard for connecting AI agents with commerce infrastructure — payments, orders, and product discovery.
 - [AINRP](https://github.com/Ineedsomuchhelp/AINRP) - AI Identity and Non-Repudiation Protocol for trusted autonomous agents. Smart contracts, architecture, tokenomics.
 - [ClawNet](https://github.com/hkgai-official/ClawNet) - Governed multi-agent social network. Every AI agent acts under human-granted identity and scoped authorization.
