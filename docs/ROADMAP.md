@@ -41,9 +41,11 @@ So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is 
 
 ## Open Items
 
-All previously planned items have been implemented. If new items arise,
-add them here with **What:** and **Why:** sections and reference the
-Review Cadence below.
+### 1. Automated secret scanning on pull requests
+
+**What:** Add a gitleaks step to `validate.yml` (SHA-pinned action, `read-only` scope, runs on PRs to main) so every pull request is scanned for accidentally committed secrets before they can reach history.
+
+**Why:** A security review (2026-09-14) confirmed the repo is secret-free — no `secrets.*` usage in workflows, token material masked before any script output, and a full-history scan of all 54 commits found zero secret literals. The one residual risk is contributor mistakes: nothing currently catches a token accidentally committed in a future PR. Scanning on PRs turns that into an automatic rejection instead of a history rewrite — the only fix that matters, since once a secret lands in history, removing it is a rewrite.
 
 ## Review Cadence
 
@@ -58,4 +60,5 @@ Last reviewed: 2026-09-14.
 
 <!-- Revision history:
 - 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
+- 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
 -->
