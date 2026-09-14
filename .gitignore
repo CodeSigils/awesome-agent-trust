@@ -8,13 +8,46 @@ node_modules/
 *.swo
 *.sublime-*
 
-# Python cache
+# Python
 __pycache__/
-node_modules/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.hypothesis/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node/npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # macOS
 .DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# AI agent tooling (local state, plans, memory, indexes)
+.omo/
+.open-mem/
+.codegraph/
+.claude/settings.local.json
 
 # Local development
 .cache/
