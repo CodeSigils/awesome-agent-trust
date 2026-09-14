@@ -125,6 +125,7 @@ Fine-grained authorization, delegation, and permission systems for agent tool ex
 
 Public registries, trust scoring, signed receipts, and verifiable attestation.
 
+- [AffixIO](https://www.npmjs.com/package/affixio) - Host-side Know Your Agent / action attestation via npm `affixio` (signed yes/no on host before pay or tool use; not person KYC). Repo listed on the package: [AffixIO/SDK](https://github.com/AffixIO/SDK). Docs: [agent-trust](https://www.affix-io.com/agent-trust/).
 - [agentattest](https://github.com/AuroraAeon/agentattest) - Verifiable provenance for AI coding agents. Binds agent runs, diffs, PRs, artifacts, and approvals into attestations.
 - [AgentGuard](https://github.com/GoPlusSecurity/agentguard) - Security guard for AI agents. Blocks malicious skills, prevents data leaks, protects secrets. 24 detection rules.
 - [agentregistry](https://github.com/agentregistry-dev/agentregistry) - Centralized, curated registry for AI agent skills.
