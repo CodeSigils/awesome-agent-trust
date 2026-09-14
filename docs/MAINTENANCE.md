@@ -86,7 +86,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 23 regression tests for the validator and gh_api helpers         |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 27 regression tests for the validator and gh_api helpers         |
 
 Governance documents the automation enforces:
 
@@ -246,7 +246,10 @@ The only waiver mechanism. Each entry names a repository, the soft checks
 being waived, an evidence-backed `reason` (at least 20 characters), and a
 future `review_after` ISO date that makes the waiver self-expiring. Only
 soft checks may be waived; hard failures cannot be. An exception for a
-repository not listed in the README is a `CONFIG_ERROR`.
+repository not listed in the README is a `CONFIG_ERROR`. Malformed entries
+(records whose `repo` is not a string, whose `checks` is not a list or
+contains non-string values, or whose `review_after` is not an ISO date) are
+reported as validation errors instead of crashing the run.
 
 Current entries (all `LOW_STARS` unless noted):
 `CSOAI-ORG/meok-aaif-agent-card-mcp` (2027-08-01),
@@ -270,7 +273,7 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` prints "Linting(1)"; all 23 tests
+Expected healthy output: `npm run lint` prints "Linting(1)"; all 27 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -299,4 +302,5 @@ Last reviewed: 2026-09-14.
 
 <!-- Revision history:
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
+- 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 -->
