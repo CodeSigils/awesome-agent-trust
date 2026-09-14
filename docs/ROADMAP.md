@@ -90,6 +90,10 @@ a current compromise or CI failure:
 - **Operational response.** Document named ownership, backup coverage, and
   secret-rotation steps so response does not depend on informal maintainer
   knowledge.
+- **Secret-scan enforcement.** Treat a confirmed secret finding as a hard
+  merge failure and require the `secret-scan` check in branch protection.
+  Distinguish scanner/infrastructure failures from confirmed findings so an
+  unavailable scanner is handled explicitly rather than misclassified.
 
 ## Review Cadence
 
@@ -110,4 +114,5 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: recorded deferred considerations for external links, repository settings, Python quality, advisory triage, and direct-push governance
 - 2026-09-14: clarified intentional automation gaps and that future considerations have no owner, target date, or acceptance criteria until promoted to planned work
 - 2026-09-14: recorded deferred security-tightening considerations for static analysis, settings verification, governance, scope monitoring, and secret response
+- 2026-09-14: added secret-scan hard-failure and required-check enforcement consideration
 -->
