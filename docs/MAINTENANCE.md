@@ -256,6 +256,70 @@ Current entries (all `LOW_STARS` unless noted):
 `CSOAI-ORG/oasf-agent-directory-mcp` (2027-08-01), and
 `capiscio/capiscio-rfcs` (`LOW_STARS` + `NO_LICENSE`, 2026-11-01).
 
+## New maintainer handover
+
+Use this section when transferring operational ownership. Account-specific
+values are intentionally not recorded here; verify them in the repository
+settings before the outgoing maintainer leaves.
+
+### Access and settings checklist
+
+1. Confirm the incoming maintainer has repository write access and can approve
+   pull requests. Grant the minimum required organization/team permissions.
+2. In **Settings → Branches**, verify that `main` protection requires the
+   `awesome-lint` and `validate-repos` checks. Confirm whether direct pushes
+   are permitted; the preferred path is a pull request.
+3. In **Settings → Actions → General**, confirm workflows are enabled and that
+   scheduled workflows may run. Check the allowed-actions policy before
+   changing any pinned action.
+4. Verify repository variables and secrets. CI uses the automatic
+   `GITHUB_TOKEN`; `RUNNER_X86_64` is an optional runner-label variable. Local
+   API checks may use `GH_TOKEN` or `GITHUB_TOKEN`, or the GitHub CLI token.
+   Never put a personal token in the repository.
+5. Confirm Dependabot alerts and pull requests are enabled, and identify the
+   person/team responsible for reviewing action and npm updates.
+6. Confirm the security-reporting destination in [SECURITY.md](../SECURITY.md)
+   and the person/team who triages reports. Do not investigate a suspected
+   secret in a public issue; rotate/revoke it first.
+
+### First-day verification
+
+From a fresh clone, run the commands in the [maintenance commands](#maintenance-commands)
+section in this order:
+
+```bash
+npm ci
+npm test
+npm run lint
+python3 .github/scripts/check-markdown-links.py
+python3 .github/scripts/validate-repos.py
+```
+
+Then inspect the latest `validate` and `dependency-freshness` workflow runs.
+The live validator requires GitHub API access; an `API_ERROR` means metadata
+is incomplete and must not be treated as evidence that a repository is gone.
+
+### Failure triage and ownership
+
+- `awesome-lint` or local-link failures: correct README/docs formatting or
+  repository-relative paths, then rerun the local commands.
+- `validate-repos` hard failures: check the specific repository and API error;
+  remove/replace archived or missing entries only after confirming the result.
+- `NEW_*` advisories: review evidence, then baseline, exception, or remove the
+  entry according to [CRITERIA.md](../CRITERIA.md); advisories alone do not
+  block a merge.
+- `secret-scan` failures: treat as a possible credential exposure. Revoke or
+  rotate the credential, preserve the workflow evidence, and follow
+  [SECURITY.md](../SECURITY.md).
+- Action or npm freshness reports: open/update a dependency PR and let the
+  normal validation checks verify it; do not edit generated advisory state as
+  a substitute for review.
+
+Record the current maintainer, backup maintainer, Dependabot reviewer, and
+security contact in the repository’s private team/on-call documentation.
+Keep those names out of this public guide unless the project explicitly wants
+them public.
+
 ## Maintenance commands
 
 Run from the repository root. Local runs of the two API scripts benefit
@@ -303,4 +367,5 @@ Last reviewed: 2026-09-14.
 <!-- Revision history:
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
+- 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
 -->
