@@ -288,6 +288,9 @@ categorization rules, and exclusion policies. Validation CI blocks missing,
 archived, or unverifiable repositories and reports other quality signals for
 human review.
 
+See [docs/ROADMAP.md](docs/ROADMAP.md) for planned maintenance work and the
+review cadence for the list and its validation tooling.
+
 [![CC0 1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 
 To the extent possible under law, the curator has waived all copyright and related or neighboring rights to this work.
