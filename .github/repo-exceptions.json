@@ -17,6 +17,12 @@
       "checks": ["LOW_STARS", "NO_LICENSE"],
       "reason": "Community specification repository; retain for public protocol review while licensing is clarified.",
       "review_after": "2026-11-01"
+    },
+    {
+      "repo": "AffixIO/SDK",
+      "checks": ["LOW_STARS"],
+      "reason": "Public Apache-2.0 npm package affixio (918 downloads last month) with docs at affix-io.com/agent-trust; host-side agent action attestation / KYA tooling.",
+      "review_after": "2027-03-01"
     }
   ]
 }

@@ -125,6 +125,7 @@ Fine-grained authorization, delegation, and permission systems for agent tool ex
 
 Public registries, trust scoring, signed receipts, and verifiable attestation.
 
+- [AffixIO](https://github.com/AffixIO/SDK) - npm Agentic Pay Kit with x402BeforePay host-side action attestation before pay (signed yes/no on host, not person KYC), agenticPay, mcpToolGate, and KYA createAgentTrust.
 - [agentattest](https://github.com/AuroraAeon/agentattest) - Verifiable provenance for AI coding agents. Binds agent runs, diffs, PRs, artifacts, and approvals into attestations.
 - [AgentGuard](https://github.com/GoPlusSecurity/agentguard) - Security guard for AI agents. Blocks malicious skills, prevents data leaks, protects secrets. 24 detection rules.
 - [agentregistry](https://github.com/agentregistry-dev/agentregistry) - Centralized, curated registry for AI agent skills.
