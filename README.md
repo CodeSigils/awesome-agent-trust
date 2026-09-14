@@ -173,6 +173,7 @@ Immutable audit logs, hash-chained event records, session replay, and observabil
 - [trailing](https://github.com/trailingai/trailing) - Immutable audit trails for AI agents. Compliance-ready logging for Claude Code, Codex, Cursor, CrewAI.
 - [trishula-agent-telemetry](https://github.com/TrishulaSoftware/trishula-agent-telemetry) - Deterministic agent observability. Merkle-chained audit trails. Anomaly detection. Zero dependencies.
 - [vaara](https://github.com/vaaraio/vaara) - Open-source evidence layer for AI governance. Gates every agent tool call against your policies with verifiable receipts.
+- [YYLO Benchmark](https://github.com/yylo-dev/yylo-benchmark) - Benchmark harness that runs every coding-agent attempt in a dedicated fresh repository and retains one hash-verified evidence chain linking the plan, attempt, workspace receipt, post-execution repository manifest, terminal, and evaluation IDs, with recovery, doctor, and report failing closed unless the complete chain verifies.
 
 ---
 
