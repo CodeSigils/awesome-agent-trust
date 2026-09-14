@@ -72,6 +72,25 @@ formally promoting an item into planned work.
    in repository branch-protection settings; otherwise document the approved
    direct-push exception and its compensating checks.
 
+### Security tightening under consideration
+
+These security improvements are also deferred considerations, not evidence of
+a current compromise or CI failure:
+
+- **Static analysis.** Reassess CodeQL, Ruff, or another focused analyzer if
+  the standard-library Python scripts grow beyond their current scope.
+- **Settings verification.** Consider a periodic or policy-backed check for
+  branch protection, Actions restrictions, required checks, and permissions.
+- **Governance enforcement.** Confirm whether direct pushes are permitted; if
+  PR-only maintenance is required, enforce that setting and document who can
+  administer the exception.
+- **Scope and external destinations.** Keep the non-endorsement boundary
+  explicit and consider separate monitoring or review for external links and
+  listed projects, which this repository does not security-audit.
+- **Operational response.** Document named ownership, backup coverage, and
+  secret-rotation steps so response does not depend on informal maintainer
+  knowledge.
+
 ## Review Cadence
 
 | Cadence                      | Action                                                                                                                                                                                                                                                                                                                      |
@@ -90,4 +109,5 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: added MAINTENANCE.md as the per-file automation reference, linked from Current Automation State
 - 2026-09-14: recorded deferred considerations for external links, repository settings, Python quality, advisory triage, and direct-push governance
 - 2026-09-14: clarified intentional automation gaps and that future considerations have no owner, target date, or acceptance criteria until promoted to planned work
+- 2026-09-14: recorded deferred security-tightening considerations for static analysis, settings verification, governance, scope monitoring, and secret response
 -->
