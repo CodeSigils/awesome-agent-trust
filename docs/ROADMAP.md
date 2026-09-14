@@ -40,7 +40,7 @@ to a summary page" step is not wired to the schedule yet.
 - **No baseline audit helper** (roadmap item 3) — clearing resolved `LOW_STARS` entries is still done by hand (as with the recent `tooltrust-directory` / `helixid` / `ai-trust` clears).
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-So today: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 2 turns into a weekly automatic check.
+So today: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 1 turns into a weekly automatic check.
 
 ## Open Items
 
@@ -81,7 +81,7 @@ that iterates the `LOW_STARS` entries in the advisory baseline, fetches
 current star counts, and prints which repos have crossed the ≥5-star
 threshold versus which are still below it.
 
-**Why:** The `LOW_STARS` baseline currently holds 44 entries and cannot be
+**Why:** The `LOW_STARS` baseline currently holds 42 entries and cannot be
 checked by hand. The AgentLair cleanup showed the pattern — a project
 crossing 5 stars needs its baseline entry removed — but finding it
 required either a full validator run or a manual `gh api` loop per repo.
