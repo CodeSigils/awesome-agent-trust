@@ -246,7 +246,6 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 - [HITL Protocol](https://github.com/rotorstar/hitl-protocol) - Human-in-the-Loop Protocol for autonomous agent services. Open standard (v0.8).
 - [Kinetic Trust Protocol](https://github.com/nmcitra/ktp-rfc) - Dynamic, physics-based authorization of autonomous agents.
 - [MoveGate Protocol](https://github.com/hamzzaaamalik/movegate-contracts) - Agent Identity, Authorization, and Trust Infrastructure for Sui. On-chain mandate delegation.
-- [neus/network](https://github.com/neus/network) - Open trust network for apps, people, and AI agents.
 - [Oath Protocol](https://github.com/oath-protocol/oath-protocol) - Protocol for cryptographically verifiable human intent. Agent authorization, local-first, offline-capable.
 - [Python A2A](https://github.com/themanojdesai/python-a2a) - Python library for implementing Google's Agent-to-Agent (A2A) protocol.
 - [sati](https://github.com/cascade-protocol/sati) - Trust infrastructure for million-agent economies on Solana. Identity, reputation, validation.
