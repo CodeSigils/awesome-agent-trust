@@ -11,25 +11,40 @@ affect: the `reviewed` date in `.github/advisory-baseline.json` and the
 `review_after` dates in `.github/repo-exceptions.json` act as the tick
 marks for the [Review Cadence](#review-cadence) below.
 
+## Directive
+
+This roadmap MUST be revisited before and after every meaningful action or
+decision about this repository — every merge, removal, baseline or exception
+edit, CI change, or policy adjustment. Each revisit must also tighten the
+roadmap itself: strike completed items, correct stale estimates or cadence
+notes, and fold lessons learned back into the remaining open items. A
+roadmap that is not re-read before and after each change is not a plan; it
+is documented drift.
+
+## Current Automation State
+
+Today the repo has three pieces of automation, all in `.github/`:
+
+| Automation | Trigger | What it does |
+|------------|---------|--------------|
+| `validate.yml` — 2 jobs | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN` |
+| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Advisory only |
+| `dependabot.yml` | weekly (GitHub-managed) | Opens PRs for out-of-date github-actions and npm dependencies |
+
+Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
+
+What automation does NOT exist yet (the gap this roadmap closes):
+
+- **No scheduled star/liveness reporting.** The weekly cron in `validate.yml` exists, but it is designed for PR gating; the advisory summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) is only printed when someone runs `validate-repos.py` manually — or a PR triggers it. That is roadmap item 1: the two Monday crons exist, but the "report drift
+to a summary page" step is not wired to the schedule yet.
+- **No baseline audit helper** (roadmap item 3) — clearing resolved `LOW_STARS` entries is still done by hand (as with the recent `tooltrust-directory` / `helixid` / `ai-trust` clears).
+- **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
+
+So today: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 2 turns into a weekly automatic check.
+
 ## Open Items
 
-### 1. Baseline the two A2A SDK inactivity advisories
-
-**What:** Add `go-a2a/a2a-go` (README entry "A2A Go") and
-`themanojdesai/python-a2a` (README entry "Python A2A") to the `INACTIVE`
-array in `.github/advisory-baseline.json`, alongside the existing
-`Ineedsomuchhelp/AINRP` entry, during the next baseline refresh.
-
-**Why:** These are the only two `NEW_INACTIVE` advisories standing since
-before the YYLO Benchmark merge, and both are core-ecosystem SDKs for the
-A2A protocol — the same protocol the list's marquee entry implements. They
-are unmaintained (no push in over a year) but not dead or misleading, so
-removing them would lose coverage while leaving them unbaselined would
-keep re-flagging the same two repos on every validator run. Documenting
-them isolates genuine new signal and keeps the "new advisories" output of
-each run meaningful.
-
-### 2. Scheduled validator report
+### 1. Scheduled validator report
 
 **What:** Extend the weekly `dependency-freshness.yml` workflow to also run
 `python3 .github/scripts/validate-repos.py` and write the
@@ -43,7 +58,7 @@ step makes the inspection cycle automatic: a one-screen Monday report of
 which projects crossed the ≥5-star threshold and which new flags appeared,
 instead of a manual loop that tends to go stale between contributions.
 
-### 3. Standardize the below-threshold triage rule
+### 2. Standardize the below-threshold triage rule
 
 **What:** Add an explicit rule to [contributing.md](../contributing.md) (and
 point to it from [CRITERIA.md](../CRITERIA.md)): a sub-5-star repo may be
@@ -59,7 +74,7 @@ the rule itself is not written down anywhere. Codifying it removes the
 guesswork from every `NEW_LOW_STARS` review and matches the criteria's
 existing position that "stars alone never establish quality."
 
-### 4. Bulk star-audit helper
+### 3. Bulk star-audit helper
 
 **What:** Add a `--baseline-audit` mode to `.github/scripts/validate-repos.py`
 that iterates the `LOW_STARS` entries in the advisory baseline, fetches
@@ -75,7 +90,7 @@ seconds, and catches resolved advisories automatically.
 
 ## Backlog
 
-### 5. Configurable star threshold
+### 4. Configurable star threshold
 
 **What:** Extract the hardcoded 5-star threshold in
 `.github/scripts/validate-repos.py` into a named constant (or config
@@ -89,9 +104,9 @@ the check logic.
 
 | Cadence | Action |
 |---------|--------|
-| Weekly | `dependency-freshness.yml` run — review the validator summary once item 2 is in place |
+| Weekly | `dependency-freshness.yml` run — review the validator summary once item 1 is in place |
 | Monthly | Triage new advisories from reported runs: resolve to baseline, exception, or removal |
 | Quarterly | Full baseline audit: remove entries that crossed ≥5 stars, re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
-| On PRs with advisory signals | Apply the adoption-evidence rule from item 3; ask the contributor for package-registry download data when relevant |
+| On PRs with advisory signals | Apply the adoption-evidence rule from item 2; ask the contributor for package-registry download data when relevant |
 
 Last reviewed: 2026-09-14.
