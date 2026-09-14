@@ -23,7 +23,7 @@ is documented drift.
 
 ## Current Automation State
 
-Today the repo has three pieces of automation, all in `.github/`:
+As of 2026-09-14, the repo has three pieces of automation, all in `.github/`:
 
 | Automation | Trigger | What it does |
 |------------|---------|--------------|
@@ -40,7 +40,7 @@ to a summary page" step is not wired to the schedule yet.
 - **No baseline audit helper** (roadmap item 3) — clearing resolved `LOW_STARS` entries is still done by hand (as with the recent `tooltrust-directory` / `helixid` / `ai-trust` clears).
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-So today: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 1 turns into a weekly automatic check.
+So as of 2026-09-14: PRs are fully gated automatically, dependency freshness is reported automatically, but star/license/activity drift is only checked when a human runs the validator or a PR comes in. That is precisely the part item 1 turns into a weekly automatic check.
 
 ## Open Items
 
