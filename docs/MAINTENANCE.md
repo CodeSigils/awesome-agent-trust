@@ -8,6 +8,16 @@ exists today.
 
 ## Updating this document
 
+### Maintenance directive
+
+This guide MUST be revisited before and after every relevant repository
+action — including a merge, removal, baseline or exception edit, CI/workflow
+change, dependency change, policy adjustment, or maintainer handover. Each
+revisit must tighten the guide and prevent documented drift: correct stale
+facts, update affected diagrams/inventories/commands, record changed review
+dates, and add a revision-history entry. A change is not fully maintained
+until its implementation, roadmap status, and this guide agree.
+
 This file MUST be updated whenever a roadmap item is completed, a new
 automation is added, or an existing one changes behavior. This is the
 documentation half of the roadmap's
@@ -403,4 +413,5 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
 - 2026-09-14: document full-history checkout required by the Gitleaks push-range scan
 - 2026-09-14: document workflow/script permissions and Python quality expectations
+- 2026-09-14: add before/after-action maintenance directive to prevent documentation drift
 -->

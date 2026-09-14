@@ -37,7 +37,7 @@ roadmap whenever automation changes.
 
 Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
 
-What automation does NOT exist yet (the gap this roadmap closes):
+Intentional automation gaps (not currently planned for implementation):
 
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
@@ -48,6 +48,29 @@ So as of 2026-09-14: PRs are fully gated automatically (format, repo liveness, a
 All previously planned items have been implemented.
 
 - 2026-09-14: automated secret scanning on pull requests — gitleaks runs as a third `validate.yml` job (SHA-pinned, `contents: read`), so every push and PR is scanned before a secret can reach history. The security review confirmed the existing history is clean; this closes the residual contributor-mistake risk.
+
+## Future considerations
+
+These are deliberately deferred improvements, not current CI failures. Each
+should be scoped, configured, and reviewed before implementation. None has an
+owner, target date, or acceptance criteria yet; assigning those is part of
+formally promoting an item into planned work.
+
+1. **External link checking.** Extend link monitoring to non-GitHub URLs such
+   as W3C, EIP, and Google documentation, with sensible handling for rate
+   limits, redirects, and temporary outages.
+2. **Repository settings as operational documentation.** Record or regularly
+   verify branch protection, Actions policy, Dependabot configuration,
+   variables, permissions, and required checks during maintainer handover.
+3. **Python static quality checks.** Consider pinned Ruff and optionally mypy
+   or pyright for the standard-library scripts. This is optional while the
+   scripts remain small and are covered by tests.
+4. **Advisory triage support.** Keep retention/removal decisions human-made,
+   but consider tooling that groups the 65 baseline advisories, tracks review
+   ownership, and highlights overdue follow-up.
+5. **Direct-push governance.** If PR-only maintenance is intended, enforce it
+   in repository branch-protection settings; otherwise document the approved
+   direct-push exception and its compensating checks.
 
 ## Review Cadence
 
@@ -65,4 +88,6 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
 - 2026-09-14: implemented open item 1 (gitleaks in validate.yml); roadmap fully implemented
 - 2026-09-14: added MAINTENANCE.md as the per-file automation reference, linked from Current Automation State
+- 2026-09-14: recorded deferred considerations for external links, repository settings, Python quality, advisory triage, and direct-push governance
+- 2026-09-14: clarified intentional automation gaps and that future considerations have no owner, target date, or acceptance criteria until promoted to planned work
 -->
