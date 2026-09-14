@@ -10,6 +10,7 @@ from pathlib import Path
 from gh_api import fetch_json, resolve_token
 
 PINNED = re.compile(r"uses:\s*([\w.-]+/[\w.-]+)@([0-9a-f]{40})\s+#\s*v(\d+)")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def latest_sha(repo: str, major: str, token: str) -> str:
@@ -38,7 +39,7 @@ def latest_sha(repo: str, major: str, token: str) -> str:
 def main() -> int:
     token = resolve_token() or ""
     rows: list[str] = []
-    for path in sorted(Path(".github").rglob("*.yml")):
+    for path in sorted((REPO_ROOT / ".github").rglob("*.yml")):
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             match = PINNED.search(line)
             if not match:
@@ -48,7 +49,7 @@ def main() -> int:
                 state = "current" if pinned == latest_sha(repo, major, token) else "update available"
             except (OSError, KeyError, ValueError):
                 state = "unknown"
-            rows.append(f"| `{repo}` | `v{major}` | {state} | `{path}:{number}` |")
+            rows.append(f"| `{repo}` | `v{major}` | {state} | `{path.relative_to(REPO_ROOT)}:{number}` |")
     report = "## GitHub Action freshness\n\n| Action | Major | Status | Location |\n|---|---:|---|---|\n"
     report += "\n".join(rows) if rows else "No pinned actions found."
     print(report)

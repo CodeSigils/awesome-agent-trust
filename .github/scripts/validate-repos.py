@@ -61,15 +61,19 @@ def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str,
             errors.append(f"entry {index}: must be an object")
             continue
         repo = item.get("repo", "")
-        checks = set(item.get("checks", []))
+        raw_checks = item.get("checks", [])
         reason = item.get("reason", "").strip()
         review_after = item.get("review_after", "")
         label = repo or f"entry {index}"
 
-        if not re.fullmatch(r"[^/\s]+/[^/\s]+", repo):
+        if not isinstance(repo, str) or not re.fullmatch(r"[^/\s]+/[^/\s]+", repo):
             errors.append(f"{label}: invalid repository name")
         if repo in exceptions:
             errors.append(f"{label}: duplicate exception")
+        if not isinstance(raw_checks, list):
+            errors.append(f"{label}: checks must be a list")
+            continue
+        checks = set(raw_checks)
         unknown = checks - SOFT_ERRORS
         if unknown:
             errors.append(f"{label}: unsupported checks: {', '.join(sorted(unknown))}")
@@ -81,10 +85,11 @@ def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str,
             review_date = date.fromisoformat(review_after)
             if review_date < today:
                 errors.append(f"{label}: exception expired on {review_after}")
-        except ValueError:
+        except (TypeError, ValueError):
             errors.append(f"{label}: review_after must be an ISO date")
 
-        exceptions[repo] = checks
+        if isinstance(repo, str):
+            exceptions[repo] = checks
     return exceptions, errors
 
 
