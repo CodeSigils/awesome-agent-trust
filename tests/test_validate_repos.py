@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 import unittest
 from datetime import date, datetime, timezone
@@ -10,11 +11,17 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-SCRIPT = Path(__file__).parents[1] / ".github" / "scripts" / "validate-repos.py"
-SPEC = importlib.util.spec_from_file_location("validate_repos", SCRIPT)
+SCRIPTS_DIR = Path(__file__).parents[1] / ".github" / "scripts"
+sys.path.insert(0, str(SCRIPTS_DIR))
+SPEC = importlib.util.spec_from_file_location("validate_repos", SCRIPTS_DIR / "validate-repos.py")
 assert SPEC and SPEC.loader
 validator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(validator)
+
+GH_API_SPEC = importlib.util.spec_from_file_location("gh_api", SCRIPTS_DIR / "gh_api.py")
+assert GH_API_SPEC and GH_API_SPEC.loader
+gh_api = importlib.util.module_from_spec(GH_API_SPEC)
+GH_API_SPEC.loader.exec_module(gh_api)
 
 
 class ExtractReposTests(unittest.TestCase):
@@ -32,18 +39,18 @@ class ExtractReposTests(unittest.TestCase):
 class CheckRepoTests(unittest.TestCase):
     def test_404_is_not_found(self) -> None:
         error = HTTPError("url", 404, "missing", {}, None)
-        with patch.object(validator, "fetch_repo", side_effect=error):
+        with patch.object(validator, "fetch_json", side_effect=error):
             self.assertEqual(validator.check_repo("owner/repo")["errors"], ["NOT_FOUND"])
 
     def test_rate_limit_is_api_error_not_not_found(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
-        with patch.object(validator, "fetch_repo", side_effect=error):
+        with patch.object(validator, "fetch_json", side_effect=error):
             result = validator.check_repo("owner/repo")
         self.assertEqual(result["errors"], ["API_ERROR"])
         self.assertIn("403", result["detail"])
 
     def test_network_failure_is_api_error(self) -> None:
-        with patch.object(validator, "fetch_repo", side_effect=URLError("offline")):
+        with patch.object(validator, "fetch_json", side_effect=URLError("offline")):
             self.assertEqual(validator.check_repo("owner/repo")["errors"], ["API_ERROR"])
 
     def test_quality_and_archive_signals(self) -> None:
@@ -55,7 +62,7 @@ class CheckRepoTests(unittest.TestCase):
             "license": None,
         }
         now = datetime(2026, 1, 2, tzinfo=timezone.utc)
-        with patch.object(validator, "fetch_repo", return_value=metadata):
+        with patch.object(validator, "fetch_json", return_value=metadata):
             result = validator.check_repo("owner/repo", now=now)
         self.assertEqual(
             set(result["errors"]),
@@ -69,9 +76,9 @@ class TokenTests(unittest.TestCase):
             self.assertEqual(validator.resolve_token(), "workflow-token")
 
     def test_falls_back_to_github_cli(self) -> None:
-        completed = validator.subprocess.CompletedProcess([], 0, "cli-token\n", "")
+        completed = gh_api.subprocess.CompletedProcess([], 0, "cli-token\n", "")
         with patch.dict(os.environ, {}, clear=True), patch.object(
-            validator.subprocess, "run", return_value=completed
+            gh_api.subprocess, "run", return_value=completed
         ):
             self.assertEqual(validator.resolve_token(), "cli-token")
 
@@ -191,6 +198,48 @@ class OrderingTests(unittest.TestCase):
             path = Path(directory) / "README.md"
             path.write_text(text, encoding="utf-8")
             self.assertEqual(validator.check_readme_ordering(path), ["Projects"])
+
+
+class GhApiTests(unittest.TestCase):
+    def test_retries_transient_failures_then_succeeds(self) -> None:
+        attempts = 0
+
+        class Response:
+            def __enter__(self) -> Response:
+                return self
+
+            def __exit__(self, *_: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return b'{"ok": true}'
+
+        def flaky(_: str, **__: object) -> Response:
+            nonlocal attempts
+            attempts += 1
+            if attempts < 3:
+                raise URLError("offline")
+            return Response()
+
+        with patch.object(gh_api, "urlopen", side_effect=flaky):
+            data = gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
+        self.assertEqual(data, {"ok": True})
+        self.assertEqual(attempts, 3)
+
+    def test_does_not_retry_http_errors(self) -> None:
+        error = HTTPError("url", 403, "rate limited", {}, None)
+        with patch.object(gh_api, "urlopen", side_effect=error):
+            with self.assertRaises(HTTPError):
+                gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
+
+    def test_mask_token_replaces_token_in_text(self) -> None:
+        self.assertEqual(
+            gh_api.mask_token("Request https://x?token=secret failed", "secret"),
+            "Request https://x?token=*** failed",
+        )
+
+    def test_mask_token_returns_text_unchanged_without_token(self) -> None:
+        self.assertEqual(gh_api.mask_token("plain output", None), "plain output")
 
 
 class BaselineAuditTests(unittest.TestCase):

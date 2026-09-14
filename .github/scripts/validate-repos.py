@@ -9,16 +9,15 @@ errors. Narrow, evidence-backed exceptions live in repo-exceptions.json.
 from __future__ import annotations
 
 import json
-import os
 import re
-import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+from gh_api import fetch_json, mask_token, resolve_token
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 README_PATH = REPO_ROOT / "README.md"
@@ -115,38 +114,6 @@ def load_advisory_baseline(path: Path) -> tuple[set[tuple[str, str]], list[str]]
     return pairs, errors
 
 
-def fetch_repo(repo: str, *, token: str | None = None) -> dict[str, Any]:
-    """Fetch repository metadata, preserving HTTP status for classification."""
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "awesome-agent-trust-validator",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    request = Request(f"https://api.github.com/repos/{repo}", headers=headers)
-    with urlopen(request, timeout=15) as response:
-        return json.load(response)
-
-
-def resolve_token() -> str | None:
-    """Use an Actions token or the authenticated GitHub CLI token locally."""
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    if token:
-        return token
-    try:
-        result = subprocess.run(
-            ["gh", "auth", "token"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    return result.stdout.strip() if result.returncode == 0 else None
-
-
 def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> dict[str, Any]:
     """Return hard failures and advisory signals for one repository."""
     result: dict[str, Any] = {
@@ -157,17 +124,17 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
         "detail": "",
     }
     try:
-        data = fetch_repo(repo, token=token)
+        data = fetch_json(f"https://api.github.com/repos/{repo}", token=token)
     except HTTPError as exc:
         if exc.code == 404:
             result["errors"].append("NOT_FOUND")
         else:
             result["errors"].append("API_ERROR")
-            result["detail"] = f"GitHub returned HTTP {exc.code}"
+            result["detail"] = mask_token(f"GitHub returned HTTP {exc.code}", token)
         return result
     except (URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
         result["errors"].append("API_ERROR")
-        result["detail"] = str(exc)
+        result["detail"] = mask_token(str(exc), token)
         return result
 
     result["stars"] = data.get("stargazers_count", 0)

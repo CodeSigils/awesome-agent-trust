@@ -3,40 +3,40 @@
 
 from __future__ import annotations
 
-import json
 import os
 import re
-import urllib.request
 from pathlib import Path
+
+from gh_api import fetch_json, resolve_token
 
 PINNED = re.compile(r"uses:\s*([\w.-]+/[\w.-]+)@([0-9a-f]{40})\s+#\s*v(\d+)")
 
 
 def latest_sha(repo: str, major: str, token: str) -> str:
-    headers = {"Accept": "application/vnd.github+json", "User-Agent": "awesome-agent-trust-freshness"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    request = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/git/ref/tags/v{major}", headers=headers
+    """Resolve the latest commit SHA for a major version tag."""
+    data = fetch_json(
+        f"https://api.github.com/repos/{repo}/git/ref/tags/v{major}",
+        token=token,
+        timeout=20,
     )
-    with urllib.request.urlopen(request, timeout=20) as response:
-        target = json.load(response)["object"]
+    target = data["object"]
     if target["type"] == "commit":
         return target["sha"]
     if target["type"] != "tag":
         raise ValueError(f"unexpected tag object type: {target['type']}")
-    tag_request = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/git/tags/{target['sha']}", headers=headers
+    tag_data = fetch_json(
+        f"https://api.github.com/repos/{repo}/git/tags/{target['sha']}",
+        token=token,
+        timeout=20,
     )
-    with urllib.request.urlopen(tag_request, timeout=20) as response:
-        tag = json.load(response)["object"]
+    tag = tag_data["object"]
     if tag["type"] != "commit":
         raise ValueError("annotated action tag does not resolve to a commit")
     return tag["sha"]
 
 
 def main() -> int:
-    token = os.environ.get("GH_TOKEN", "")
+    token = resolve_token() or ""
     rows: list[str] = []
     for path in sorted(Path(".github").rglob("*.yml")):
         for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
