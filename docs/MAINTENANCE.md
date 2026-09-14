@@ -18,6 +18,13 @@ facts, update affected diagrams/inventories/commands, record changed review
 dates, and add a revision-history entry. A change is not fully maintained
 until its implementation, roadmap status, and this guide agree.
 
+After each post-action revisit, the maintainer MUST read
+[ROADMAP.md](ROADMAP.md) in tandem with this guide. Reconcile the two files:
+move completed considerations out of the deferred section, record new gaps or
+policy decisions in the roadmap, and ensure both revision histories and
+"as-of" facts describe the same repository state. Treat disagreement between
+the files as documentation drift to resolve before closing the action.
+
 This file MUST be updated whenever a roadmap item is completed, a new
 automation is added, or an existing one changes behavior. This is the
 documentation half of the roadmap's
@@ -420,4 +427,5 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: add before/after-action maintenance directive to prevent documentation drift
 - 2026-09-14: correct workflow diagram merge semantics, trigger labeling, and lint-output expectation
 - 2026-09-14: clarify that workflow execution and protected-merge enforcement are separate controls
+- 2026-09-14: require post-action tandem review of MAINTENANCE.md and ROADMAP.md
 -->
