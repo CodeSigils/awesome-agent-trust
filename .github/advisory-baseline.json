@@ -1,9 +1,11 @@
 {
   "reviewed": "2026-09-14",
   "advisories": {
-    "INACTIVE": ["Ineedsomuchhelp/AINRP"],
+    "INACTIVE": [
+      "go-a2a/a2a-go", "Ineedsomuchhelp/AINRP", "themanojdesai/python-a2a"
+    ],
     "LOW_STARS": [
-      "AgentSafe-AI/tooltrust-directory", "AgnesDevita/DecisionNotary",
+      "AgnesDevita/DecisionNotary",
       "AuroraAeon/agentattest", "Dylan-Xu410/AgenticTrust",
       "Ineedsomuchhelp/AINRP", "LineageLabs/awesome-ai-agent-protocols",
       "Preventra/preventra", "Scaffoldic/forgesight",
@@ -12,7 +14,7 @@
       "agentnameservice/ans-sdk-java", "api-evangelist/agentic-ai-foundation",
       "attestplane/attestplane", "azeth-protocol/awesome-machine-economy",
       "berkay-aktas/kairon-protocol", "chokonaira/permitrail",
-      "cullis-security/cullis", "dgverse-labs/helixid", "enchanter-ai/mimir",
+      "cullis-security/cullis", "enchanter-ai/mimir",
       "hamzzaaamalik/movegate-contracts", "hazennik/asi", "ionalpha/provetrail",
       "jacobsd32-cpu/djd-agent-score", "joyshmitz/ampersona", "logpose-dev/logpose",
       "martintopalov/repute", "nmcitra/ktp-rfc", "oath-protocol/oath-protocol",
@@ -31,7 +33,7 @@
       "azeth-protocol/awesome-machine-economy", "berkay-aktas/kairon-protocol",
       "binance/binance-skills-hub", "edwang2006/fides_protocol",
       "joyshmitz/ampersona", "linny006/awesome-agent-skills", "logpose-dev/logpose",
-      "martintopalov/repute", "opena2a-org/ai-trust", "selfradiance/actionwarrant",
+      "martintopalov/repute", "selfradiance/actionwarrant",
       "vkobel/confidential-computing-expert-skill", "yourclaw/clawguard"
     ]
   }
