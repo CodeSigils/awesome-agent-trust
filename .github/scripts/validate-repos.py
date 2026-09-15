@@ -45,7 +45,7 @@ def extract_repos(path: Path) -> set[str]:
 
 def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str, set[str]], list[str]]:
     """Load reviewed exceptions and return them with configuration errors."""
-    today = today or date.today()
+    today = today or datetime.now(timezone.utc).date()
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:

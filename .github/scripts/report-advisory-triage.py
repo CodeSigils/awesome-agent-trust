@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -71,7 +71,11 @@ def render_report(*, baseline: dict[str, Any] | None, exceptions: dict[str, Any]
 def main() -> int:
     baseline, baseline_error = load_json(BASELINE_PATH)
     exceptions, exceptions_error = load_json(EXCEPTIONS_PATH)
-    report = render_report(baseline=baseline, exceptions=exceptions, today=date.today())
+    report = render_report(
+        baseline=baseline,
+        exceptions=exceptions,
+        today=datetime.now(timezone.utc).date(),
+    )
     warnings = [error for error in (baseline_error, exceptions_error) if error]
     if warnings:
         report += "\n\nWarnings:\n" + "\n".join(f"- {warning}" for warning in warnings)
