@@ -32,7 +32,7 @@ roadmap whenever automation changes.
 | Automation                 | Trigger                                                                               | What it does                                                                                                                                                                                                                                                                                                                        |
 | -------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `validate.yml` — 3 jobs    | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN`. Job 3: `gitleaks` scans every push/PR for accidentally committed secrets (SHA-pinned, `contents: read` only) |
-| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`), `validate-repos.py` reports advisory drift (`NEW_*` / `RESOLVED` / `ACCEPTED`), and `report-external-links.py` reports non-GitHub README-link health. All write to the workflow summary; link health is advisory only. |
+| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`), `validate-repos.py` reports advisory drift (`NEW_*` / `RESOLVED` / `ACCEPTED`), `report-external-links.py` reports non-GitHub README-link health, and `report-advisory-triage.py` summarizes signal counts and exception-review dates. All write to the workflow summary; these reports are advisory only. |
 | `dependabot.yml`           | weekly (GitHub-managed)                                                               | Opens PRs for out-of-date github-actions and npm dependencies                                                                                                                                                                                                                                                                       |
 
 Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
@@ -49,8 +49,8 @@ runs with `--baseline-audit`. Retention and waiver decisions remain
 maintainer-made. A maintainer can run
 `verify-repository-settings.py` locally to check branch-protection drift; it
 uses an existing authenticated GitHub CLI session and makes no changes.
-The weekly advisory report also checks non-GitHub README links without a
-token, commit, pull request, or state file.
+The weekly report checks non-GitHub README links; its advisory-triage summary
+reads local state without a token, commit, pull request, or state-file changes.
 GitHub Actions settings require full-SHA action references and permit only
 `actions/checkout`, `actions/setup-node`, and `gitleaks/gitleaks-action`.
 
@@ -70,6 +70,8 @@ All previously planned items have been implemented.
   requires no repository secret, scheduled workflow, commit, or pull request.
 - 2026-09-15: add weekly advisory monitoring for non-GitHub README links;
   remote failures are reported but never block a merge.
+- 2026-09-15: add token-free advisory triage reporting with overdue exception
+  review status; state files remain human-maintained.
 - 2026-09-15: remove the independent-approval requirement for the solo
   maintainer while retaining required CI and administrator enforcement.
 - 2026-09-15: enforce SHA-pinned GitHub Actions at the repository level.
@@ -94,9 +96,6 @@ formally promoting an item into planned work.
 3. **Python static quality checks.** Consider pinned Ruff and optionally mypy
    or pyright for the standard-library scripts. This is optional while the
    scripts remain small and are covered by tests.
-4. **Advisory triage support.** Keep retention/removal decisions human-made,
-   but consider tooling that groups the 65 baseline advisories, tracks review
-   ownership, and highlights overdue follow-up.
 
 ### Security tightening under consideration
 
@@ -118,8 +117,8 @@ a current compromise or CI failure:
 
 | Cadence                      | Action                                                                                                                                                                                                                                                                                                                      |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Weekly                       | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`)                                                                                                                                                                                                                           |
-| Monthly                      | Triage new advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                                        |
+| Weekly                       | `dependency-freshness.yml` run — review validator drift, Action freshness, external-link health, and exception-triage summaries                                                                                                                                                                                            |
+| Monthly                      | Triage new and overdue advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                             |
 | Monthly                      | Run `verify-repository-settings.py` from an authenticated maintainer session; investigate any reported branch-protection drift                                                                                                                                                                                               |
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |

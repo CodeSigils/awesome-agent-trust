@@ -39,3 +39,5 @@ jobs:
           exit "$validation_status"
       - name: Report external README link health
         run: python3 .github/scripts/report-external-links.py
+      - name: Report advisory triage
+        run: python3 .github/scripts/report-advisory-triage.py

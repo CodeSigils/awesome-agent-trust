@@ -85,7 +85,8 @@ Three layers of automation exist, all maintained by the repository owner:
   itself does not merge changes or prevent an explicitly permitted direct
   push.
 - **Reporting** — `dependency-freshness.yml` runs every Monday and writes an
-  advisory-only summary (pinned Action SHA drift + advisory drift) to the
+  advisory-only summary (pinned Action SHA drift, advisory drift, external-link
+  health, and exception triage) to the
   workflow summary page. Soft advisories do not fail the run; hard validation
   failures and incomplete execution do. This workflow is not a required PR check.
 - **Maintainer tools** — the scripts in `.github/scripts/` run in CI but are
@@ -97,13 +98,14 @@ Three layers of automation exist, all maintained by the repository owner:
 | File                                                                                            | What it is                                                       |
 | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | [`.github/workflows/validate.yml`](../.github/workflows/validate.yml)                           | The CI gate: 3 jobs (awesome-lint, validate-repos, gitleaks)     |
-| [`.github/workflows/dependency-freshness.yml`](../.github/workflows/dependency-freshness.yml)   | Weekly advisory report (action SHA + advisory drift)             |
+| [`.github/workflows/dependency-freshness.yml`](../.github/workflows/dependency-freshness.yml)   | Weekly advisory report (Action SHA, repo drift, links, and triage) |
 | [`.github/dependabot.yml`](../.github/dependabot.yml)                                           | Weekly dependency-update PRs for GitHub Actions and npm          |
 | [`.github/scripts/validate-repos.py`](../.github/scripts/validate-repos.py)                     | Core validator: checks every GitHub link in README.md live       |
 | [`.github/scripts/gh_api.py`](../.github/scripts/gh_api.py)                                     | Shared GitHub API client: token resolution, retry, token masking |
 | [`.github/scripts/verify-repository-settings.py`](../.github/scripts/verify-repository-settings.py) | Read-only check of `main` branch protection                      |
 | [`.github/scripts/check-markdown-links.py`](../.github/scripts/check-markdown-links.py)         | Offline check that every repository-relative `.md` link resolves |
 | [`.github/scripts/report-external-links.py`](../.github/scripts/report-external-links.py)       | Weekly advisory health report for non-GitHub README links        |
+| [`.github/scripts/report-advisory-triage.py`](../.github/scripts/report-advisory-triage.py)     | Weekly advisory counts and exception-review status               |
 | [`.github/scripts/report-action-freshness.py`](../.github/scripts/report-action-freshness.py)   | Finds pinned Actions whose SHA differs from the latest major tag |
 | [`.github/advisory-baseline.json`](../.github/advisory-baseline.json)                           | Observed soft-flag snapshot (maintainer-owned, dated)            |
 | [`.github/repo-exceptions.json`](../.github/repo-exceptions.json)                               | The only place soft checks may be waived (maintainer-owned)      |
@@ -111,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 35 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 37 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -150,7 +152,7 @@ reports when a pin falls behind its major tag.
 
 ### dependency-freshness.yml — the weekly advisory report
 
-Triggers: weekly Monday 06:30 UTC and manual dispatch. Runs three reports and
+Triggers: weekly Monday 06:30 UTC and manual dispatch. Runs four reports and
 appends them to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
 
 1. `report-action-freshness.py` — a "GitHub Action freshness" table of every
@@ -161,6 +163,8 @@ appends them to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
    `ACCEPTED` counts.
 3. `report-external-links.py` — checks non-GitHub `http(s)` Markdown links in
    `README.md` and appends their status to the workflow summary.
+4. `report-advisory-triage.py` — groups advisory signals and shows whether
+   each exception review date is current or overdue.
 
 Soft repository advisories remain non-blocking. The repository-report step
 uses Bash with `pipefail`, preserves the validator output in the summary even
@@ -168,7 +172,8 @@ on failure, and propagates a nonzero exit status for hard failures or crashes.
 The action-freshness script reports unresolved lookups as `unknown`; these
 require follow-up and do not establish freshness. External-link results are
 also advisory: a remote outage, rate limit, redirect, or broken link does not
-fail the workflow. The workflow is not a required PR check.
+fail the workflow. Triage output never edits state files. The workflow is not
+a required PR check.
 
 ### dependabot.yml — dependency updates
 
@@ -277,6 +282,13 @@ errors).
 It follows redirects and always exits 0: external availability is a review
 signal, not a merge gate. The weekly dependency-freshness workflow writes the
 report to its summary without a token, commit, pull request, or state file.
+
+### report-advisory-triage.py
+
+Reads `advisory-baseline.json` and `repo-exceptions.json` locally, summarizes
+counts by signal, and marks exception review dates as `current`, `overdue`, or
+`invalid date`. It never edits either maintainer-owned file and always remains
+advisory; the weekly workflow appends it to the summary without a token.
 
 ### report-action-freshness.py
 
@@ -436,6 +448,7 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 .github/scripts/verify-repository-settings.py`     | Read-only branch-protection drift check          |
 | `python3 .github/scripts/check-markdown-links.py`            | Check all repository-relative Markdown links     |
 | `python3 .github/scripts/report-external-links.py`           | Report non-GitHub README link health (advisory)  |
+| `python3 .github/scripts/report-advisory-triage.py`          | Group advisories and flag overdue reviews        |
 | `python3 .github/scripts/validate-repos.py`                  | Full live validation of every listed GitHub repo |
 | `python3 .github/scripts/validate-repos.py --baseline-audit` | Star audit over the LOW_STARS baseline           |
 | `python3 .github/scripts/report-action-freshness.py`         | Pinned-Action SHA freshness table                |
@@ -450,8 +463,8 @@ advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
 ## Review cadence
 
 The [Review Cadence](ROADMAP.md#review-cadence) table in ROADMAP.md is the
-schedule: weekly review of the Monday summary, monthly triage of new
-advisories, quarterly `--baseline-audit` plus expiry re-checks, and the
+schedule: weekly review of the Monday summary, monthly triage of new and
+overdue advisories, quarterly `--baseline-audit` plus expiry re-checks, and the
 adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
 `advisory-baseline.json` and the `review_after` dates in
 `repo-exceptions.json` are the tick marks for that cadence.
@@ -491,6 +504,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: clear the resolved nmcitra/ktp-rfc LOW_STARS baseline entry and reconcile test, workflow, and advisory counts
 - 2026-09-15: enforce GitHub Actions SHA pinning and document the repository setting
 - 2026-09-15: restrict GitHub Actions to checkout, setup-node, and gitleaks
+- 2026-09-15: add weekly token-free advisory triage reporting without state-file changes
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance

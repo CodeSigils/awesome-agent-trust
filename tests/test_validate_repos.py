@@ -38,6 +38,13 @@ assert LINK_REPORT_SPEC and LINK_REPORT_SPEC.loader
 link_reporter = importlib.util.module_from_spec(LINK_REPORT_SPEC)
 LINK_REPORT_SPEC.loader.exec_module(link_reporter)
 
+TRIAGE_SPEC = importlib.util.spec_from_file_location(
+    "report_advisory_triage", SCRIPTS_DIR / "report-advisory-triage.py"
+)
+assert TRIAGE_SPEC and TRIAGE_SPEC.loader
+triage_reporter = importlib.util.module_from_spec(TRIAGE_SPEC)
+TRIAGE_SPEC.loader.exec_module(triage_reporter)
+
 
 class ExtractReposTests(unittest.TestCase):
     def test_extracts_normalized_unique_repository_links(self) -> None:
@@ -444,6 +451,23 @@ class ExternalLinkReportTests(unittest.TestCase):
             self.assertEqual(link_reporter.check_link("https://blocked.example").status, "unknown")
         with patch.object(link_reporter, "_request", side_effect=missing):
             self.assertEqual(link_reporter.check_link("https://missing.example").status, "broken")
+
+
+class AdvisoryTriageReportTests(unittest.TestCase):
+    def test_reports_signal_counts_and_exception_status(self) -> None:
+        report = triage_reporter.render_report(
+            baseline={"advisories": {"LOW_STARS": ["one/repo", "two/repo"], "NO_LICENSE": ["one/repo"]}},
+            exceptions={"exceptions": [{"repo": "one/repo", "review_after": "2026-09-14"}, {"repo": "two/repo", "review_after": "2026-09-16"}]},
+            today=date(2026, 9, 15),
+        )
+        self.assertIn("LOW_STARS` | 2", report)
+        self.assertIn("Exception reviews overdue: **1**", report)
+        self.assertIn("two/repo` | 2026-09-16 | current", report)
+
+    def test_malformed_inputs_are_reported_without_raising(self) -> None:
+        report = triage_reporter.render_report(baseline=None, exceptions={"exceptions": "bad"}, today=date(2026, 9, 15))
+        self.assertIn("Unable to read advisory baseline", report)
+        self.assertIn("`exceptions` is not a list", report)
 
 
 if __name__ == "__main__":
