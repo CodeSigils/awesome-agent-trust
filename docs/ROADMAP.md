@@ -23,7 +23,7 @@ is documented drift.
 
 ## Current Automation State
 
-As of 2026-09-14, the repo has three pieces of automation, all in `.github/`.
+As of 2026-09-15, the repo has three pieces of automation, all in `.github/`.
 The per-file reference — what each automation file does, how the scripts
 work, and the maintenance commands — lives in
 [MAINTENANCE.md](MAINTENANCE.md), which must be updated alongside this
@@ -32,7 +32,7 @@ roadmap whenever automation changes.
 | Automation                 | Trigger                                                                               | What it does                                                                                                                                                                                                                                                                                                                        |
 | -------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `validate.yml` — 3 jobs    | push to main · PR to main · weekly cron `0 6 * * 1` (Mon 06:00 UTC) · manual dispatch | Job 1: `awesome-lint` (npm) checks list format/badges/TOC/relative links. Job 2: `validate-repos.py` checks every GitHub repo in the README (exists/archived/license/★/activity/description/ordering) with `GH_TOKEN`. Job 3: `gitleaks` scans every push/PR for accidentally committed secrets (SHA-pinned, `contents: read` only) |
-| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`) against latest tags → writes table to the workflow summary. Also runs `validate-repos.py` and writes the advisory drift summary (`NEW_*` / `RESOLVED` / `ACCEPTED`) to the same summary. Advisory only                                                             |
+| `dependency-freshness.yml` | weekly `30 6 * * 1` · manual dispatch                                                 | `report-action-freshness.py` checks pinned Actions (`@sha # vN`), `validate-repos.py` reports advisory drift (`NEW_*` / `RESOLVED` / `ACCEPTED`), and `report-external-links.py` reports non-GitHub README-link health. All write to the workflow summary; link health is advisory only. |
 | `dependabot.yml`           | weekly (GitHub-managed)                                                               | Opens PRs for out-of-date github-actions and npm dependencies                                                                                                                                                                                                                                                                       |
 
 Plus the non-CI automation: the issue template (`project-proposal.yml` with category dropdown) and the PR template's 10-item checklist — both shape submissions.
@@ -41,11 +41,16 @@ Intentional automation gaps (not currently planned for implementation):
 
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-As of 2026-09-14, required PR checks cover format and repository validation.
-Secret scanning runs but is not yet a required branch-protection check;
-administrators can bypass protection. Dependency freshness and advisory drift
-are reported weekly, and the `LOW_STARS` audit runs with `--baseline-audit`.
-Retention and waiver decisions remain maintainer-made.
+As of 2026-09-15, required PR checks cover format, repository validation, and
+secret scanning. Branch protection applies to administrators. No approving
+review is required because this is a solo-maintainer repository. Dependency
+freshness and advisory drift are reported weekly, and the `LOW_STARS` audit
+runs with `--baseline-audit`. Retention and waiver decisions remain
+maintainer-made. A maintainer can run
+`verify-repository-settings.py` locally to check branch-protection drift; it
+uses an existing authenticated GitHub CLI session and makes no changes.
+The weekly advisory report also checks non-GitHub README links without a
+token, commit, pull request, or state file.
 
 ## Open Items
 
@@ -57,6 +62,14 @@ All previously planned items have been implemented.
 - 2026-09-14: malformed exception values and timezone-free timestamps now
   produce validation errors; freshness reporting retains diagnostics and
   fails on hard validation errors or crashes. Soft advisories remain non-blocking.
+- 2026-09-15: branch protection now requires `awesome-lint`,
+  `validate-repos`, and `secret-scan`, including for administrators.
+- 2026-09-15: add a read-only, maintainer-run branch-protection verifier; it
+  requires no repository secret, scheduled workflow, commit, or pull request.
+- 2026-09-15: add weekly advisory monitoring for non-GitHub README links;
+  remote failures are reported but never block a merge.
+- 2026-09-15: remove the independent-approval requirement for the solo
+  maintainer while retaining required CI and administrator enforcement.
 
 ## Future considerations
 
@@ -65,21 +78,20 @@ should be scoped, configured, and reviewed before implementation. None has an
 owner, target date, or acceptance criteria yet; assigning those is part of
 formally promoting an item into planned work.
 
-1. **External link checking.** Extend link monitoring to non-GitHub URLs such
-   as W3C, EIP, and Google documentation, with sensible handling for rate
-   limits, redirects, and temporary outages.
-2. **Repository settings as operational documentation.** Record or regularly
-   verify branch protection, Actions policy, Dependabot configuration,
-   variables, permissions, and required checks during maintainer handover.
+1. **External-link scope.** The weekly report checks non-GitHub README links.
+   Consider whether documentation links outside the README merit monitoring;
+   preserve advisory-only handling for redirects, rate limits, and temporary
+   outages.
+2. **Scheduled settings verification.** The read-only branch-protection
+   verifier supports local and handover reviews. Automating it would require
+   a separately managed credential with repository-administration read access;
+   do not add one unless the benefit outweighs that operational risk.
 3. **Python static quality checks.** Consider pinned Ruff and optionally mypy
    or pyright for the standard-library scripts. This is optional while the
    scripts remain small and are covered by tests.
 4. **Advisory triage support.** Keep retention/removal decisions human-made,
    but consider tooling that groups the 65 baseline advisories, tracks review
    ownership, and highlights overdue follow-up.
-5. **Direct-push governance.** If PR-only maintenance is intended, enforce it
-   in repository branch-protection settings; otherwise document the approved
-   direct-push exception and its compensating checks.
 
 ### Security tightening under consideration
 
@@ -90,19 +102,12 @@ a current compromise or CI failure:
   the standard-library Python scripts grow beyond their current scope.
 - **Settings verification.** Consider a periodic or policy-backed check for
   branch protection, Actions restrictions, required checks, and permissions.
-- **Governance enforcement.** Confirm whether direct pushes are permitted; if
-  PR-only maintenance is required, enforce that setting and document who can
-  administer the exception.
 - **Scope and external destinations.** Keep the non-endorsement boundary
   explicit and consider separate monitoring or review for external links and
   listed projects, which this repository does not security-audit.
 - **Operational response.** Document named ownership, backup coverage, and
   secret-rotation steps so response does not depend on informal maintainer
   knowledge.
-- **Secret-scan enforcement.** Treat a confirmed secret finding as a hard
-  merge failure and require the `secret-scan` check in branch protection.
-  Distinguish scanner/infrastructure failures from confirmed findings so an
-  unavailable scanner is handled explicitly rather than misclassified.
 
 ## Review Cadence
 
@@ -110,10 +115,11 @@ a current compromise or CI failure:
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Weekly                       | `dependency-freshness.yml` run — review the validator summary (`NEW_*` / `RESOLVED` / `ACCEPTED`)                                                                                                                                                                                                                           |
 | Monthly                      | Triage new advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                                        |
+| Monthly                      | Run `verify-repository-settings.py` from an authenticated maintainer session; investigate any reported branch-protection drift                                                                                                                                                                                               |
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
 
-Last reviewed: 2026-09-14.
+Last reviewed: 2026-09-15.
 
 <!-- Revision history:
 - 2026-09-14: completed medium audit fixes for input handling, report failure propagation, and accurate security documentation
@@ -125,4 +131,11 @@ Last reviewed: 2026-09-14.
 - 2026-09-14: clarified intentional automation gaps and that future considerations have no owner, target date, or acceptance criteria until promoted to planned work
 - 2026-09-14: recorded deferred security-tightening considerations for static analysis, settings verification, governance, scope monitoring, and secret response
 - 2026-09-14: added secret-scan hard-failure and required-check enforcement consideration
+- 2026-09-15: require secret-scan in branch protection and apply protection to administrators
+- 2026-09-15: add manual, read-only branch-protection verification without a repository token or scheduled repository changes
+- 2026-09-15: add weekly advisory monitoring for non-GitHub README links without tokens or repository churn
+- 2026-09-15: use the first external-link report to replace the stale Google-hosted A2A documentation URL
+- 2026-09-15: update the automation inventory for advisory external-link monitoring
+- 2026-09-15: classify external 403 and other non-404/410 responses as unknown rather than broken
+- 2026-09-15: remove the independent-approval requirement for the solo maintainer
 -->

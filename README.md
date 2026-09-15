@@ -47,7 +47,7 @@ endorses their security claims.
 
 DNS-like resolution for AI agents. Core protocol with IETF draft backing.
 
-- [A2A Agent Cards](https://google.github.io/A2A/) - JSON metadata at `/.well-known/agent-card.json`. Agents self-describe capabilities and authentication requirements.
+- [A2A Agent Cards](https://a2a-protocol.org/latest/) - JSON metadata at `/.well-known/agent-card.json`. Agents self-describe capabilities and authentication requirements.
 - [Agent Name Service](https://github.com/agentnameservice/ans) - Reference implementation of the ANS protocol. Registry, transparency log, and IETF draft `draft-narajala-ans-00`.
 - [ANS Registry](https://github.com/agentnameservice/ans-registry) - Registration and resolution for the Agent Name Service.
 - [ANS SDK for Go](https://github.com/agentnameservice/ans-sdk-go) - Go SDK for the Agent Name Service.
