@@ -37,3 +37,5 @@ jobs:
             echo "Validation failed (exit $validation_status); inspect the report for hard failures or incomplete execution." >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$validation_status"
+      - name: Report external README link health
+        run: python3 .github/scripts/report-external-links.py

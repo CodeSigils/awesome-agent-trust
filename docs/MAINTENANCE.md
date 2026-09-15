@@ -65,6 +65,7 @@ validate.yml: push / pull_request · weekly cron · manual dispatch
                         v
         +-- report-action-freshness.py -> Action SHA table
         +-- validate-repos.py           -> advisory drift summary
+        +-- report-external-links.py    -> README link health
                         |
                         v
             workflow summary (soft advisories do not fail)
@@ -100,7 +101,9 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/dependabot.yml`](../.github/dependabot.yml)                                           | Weekly dependency-update PRs for GitHub Actions and npm          |
 | [`.github/scripts/validate-repos.py`](../.github/scripts/validate-repos.py)                     | Core validator: checks every GitHub link in README.md live       |
 | [`.github/scripts/gh_api.py`](../.github/scripts/gh_api.py)                                     | Shared GitHub API client: token resolution, retry, token masking |
+| [`.github/scripts/verify-repository-settings.py`](../.github/scripts/verify-repository-settings.py) | Read-only check of `main` branch protection                      |
 | [`.github/scripts/check-markdown-links.py`](../.github/scripts/check-markdown-links.py)         | Offline check that every repository-relative `.md` link resolves |
+| [`.github/scripts/report-external-links.py`](../.github/scripts/report-external-links.py)       | Weekly advisory health report for non-GitHub README links        |
 | [`.github/scripts/report-action-freshness.py`](../.github/scripts/report-action-freshness.py)   | Finds pinned Actions whose SHA differs from the latest major tag |
 | [`.github/advisory-baseline.json`](../.github/advisory-baseline.json)                           | Observed soft-flag snapshot (maintainer-owned, dated)            |
 | [`.github/repo-exceptions.json`](../.github/repo-exceptions.json)                               | The only place soft checks may be waived (maintainer-owned)      |
@@ -128,8 +131,10 @@ Governance documents the automation enforces:
 Triggers: `workflow_dispatch`, weekly Monday 06:00 UTC, push to `main`,
 pull requests against `main`. `concurrency` cancels a superseded run for the
 same ref. The workflow-wide `permissions: contents: read` is least
-privilege. Branch protection requires the first two jobs to pass; the
-`secret-scan` job runs on every push and PR regardless.
+privilege. Branch protection requires all three jobs to pass and applies to
+administrators. No approving-review requirement is configured because this is
+a solo-maintainer repository; the `secret-scan` job runs on every push and PR
+regardless.
 
 | Job              | Steps                                                                                                     | Fails on                                                       |
 | ---------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
@@ -151,13 +156,16 @@ appends both reports to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
 2. `validate-repos.py` — full validation piped into a `text` block under
    "Repository advisory drift", showing `NEW_*`, `KNOWN`, `RESOLVED`, and
    `ACCEPTED` counts.
+3. `report-external-links.py` — checks non-GitHub `http(s)` Markdown links in
+   `README.md` and appends their status to the workflow summary.
 
 Soft repository advisories remain non-blocking. The repository-report step
 uses Bash with `pipefail`, preserves the validator output in the summary even
 on failure, and propagates a nonzero exit status for hard failures or crashes.
 The action-freshness script reports unresolved lookups as `unknown`; these
-require follow-up and do not establish freshness. The workflow is not a
-required PR check.
+require follow-up and do not establish freshness. External-link results are
+also advisory: a remote outage, rate limit, redirect, or broken link does not
+fail the workflow. The workflow is not a required PR check.
 
 ### dependabot.yml — dependency updates
 
@@ -230,6 +238,23 @@ Shared client used by `validate-repos.py` and `report-action-freshness.py`.
 - `mask_token()` — replaces the token with `***` in error output, so a
   token buried in a URL or exception string can never reach CI logs.
 
+### verify-repository-settings.py
+
+Reads `main` branch protection and verifies that `awesome-lint`,
+`validate-repos`, and `secret-scan` are required, strict status checks are
+enabled, and protection applies to administrators. It never changes a
+repository setting, creates a commit, or opens a pull request.
+
+GitHub requires repository-administration read access for this endpoint, so
+the script is deliberately a maintainer-run check rather than scheduled CI.
+It uses an existing `gh auth login` session or an ephemeral `GH_TOKEN` /
+`GITHUB_TOKEN`; it does not store a token. Run it before a handover and at
+the monthly settings review:
+
+```bash
+python3 .github/scripts/verify-repository-settings.py
+```
+
 ### check-markdown-links.py
 
 Offline link checker run in the `awesome-lint` job and locally. Walks every
@@ -238,6 +263,17 @@ targets, and resolves repository-relative ones against the filesystem.
 Skips scheme URLs (`https:` etc.), protocol-relative `//` links, `#`
 fragments, and placeholder targets. Exits 1 listing each broken target with
 file and line.
+
+### report-external-links.py
+
+Checks unique non-GitHub `http(s)` Markdown links in `README.md` using HEAD,
+falling back to GET when a server does not support HEAD. The report labels
+links as `ok`, `redirect`, `broken` (a 404 or 410 response), or `unknown`
+(timeouts, rate limits, access denials, 5xx responses, and other transient
+errors).
+It follows redirects and always exits 0: external availability is a review
+signal, not a merge gate. The weekly dependency-freshness workflow writes the
+report to its summary without a token, commit, pull request, or state file.
 
 ### report-action-freshness.py
 
@@ -325,9 +361,11 @@ process for replacing them when needed.
 
 1. Confirm the incoming maintainer has repository write access and can approve
    pull requests. Grant the minimum required organization/team permissions.
-2. In **Settings → Branches**, verify that `main` protection requires the
-   `awesome-lint` and `validate-repos` checks. Confirm whether direct pushes
-   are permitted; the preferred path is a pull request.
+2. In **Settings → Branches**, verify that `main` protection requires
+   `awesome-lint`, `validate-repos`, and `secret-scan`, including for
+   administrators. Run `verify-repository-settings.py` with an authenticated
+   GitHub CLI session. Confirm whether direct pushes are permitted; the
+   preferred path is a pull request.
 3. In **Settings → Actions → General**, confirm workflows are enabled and that
    scheduled workflows may run. Check the allowed-actions policy before
    changing any pinned action.
@@ -391,7 +429,9 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `npm ci`                                                     | Install locked dev dependencies                  |
 | `npm run lint`                                               | awesome-lint format check (list rules)           |
 | `npm test`                                                   | Validator regression tests (unittest)            |
+| `python3 .github/scripts/verify-repository-settings.py`     | Read-only branch-protection drift check          |
 | `python3 .github/scripts/check-markdown-links.py`            | Check all repository-relative Markdown links     |
+| `python3 .github/scripts/report-external-links.py`           | Report non-GitHub README link health (advisory)  |
 | `python3 .github/scripts/validate-repos.py`                  | Full live validation of every listed GitHub repo |
 | `python3 .github/scripts/validate-repos.py --baseline-audit` | Star audit over the LOW_STARS baseline           |
 | `python3 .github/scripts/report-action-freshness.py`         | Pinned-Action SHA freshness table                |
@@ -414,20 +454,32 @@ adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
 
 ## State facts
 
-As of 2026-09-14:
+As of 2026-09-15:
 
-- `validate.yml` runs 3 jobs (awesome-lint, validate-repos, gitleaks).
+- `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
+  `main` requires all three checks and applies branch protection to
+  administrators; no approving-review requirement is configured for the solo
+  maintainer.
 - `dependency-freshness.yml` reports action SHA drift + advisory drift
   every Monday; `dependabot.yml` opens weekly update PRs.
 - Validator state: 0 hard failures, 0 new advisories, 65 known, 4 accepted
   exceptions; `--baseline-audit`: 0 resolved, 43 still below.
-- Previously planned work is complete; the roadmap also tracks deferred
-  considerations, including requiring `secret-scan` in branch protection.
+- Previously planned work is complete; the roadmap tracks remaining deferred
+  considerations such as external-link scope and scheduled settings
+  verification.
 
-Last reviewed: 2026-09-14.
+Last reviewed: 2026-09-15.
 
 <!-- Revision history:
 - 2026-09-14: fix malformed-input handling, preserve reporting failures, and clarify secret-scan triage; 30 regression tests
+- 2026-09-15: record branch protection requiring awesome-lint, validate-repos, and secret-scan for all users, including administrators
+- 2026-09-15: document credential-exposure response in SECURITY.md and align the handover checklist with all required checks
+- 2026-09-15: add a token-safe, read-only branch-protection verifier for maintainer-run settings reviews
+- 2026-09-15: add weekly advisory monitoring for non-GitHub README links without a token or repository changes
+- 2026-09-15: replace the stale Google-hosted A2A documentation URL found by the first external-link report
+- 2026-09-15: add external-link reporting to the system overview
+- 2026-09-15: classify non-404/410 external-link failures as unknown to avoid false broken-link reports
+- 2026-09-15: remove the independent-approval requirement because the repository has one maintainer; retain all required checks and administrator enforcement
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance

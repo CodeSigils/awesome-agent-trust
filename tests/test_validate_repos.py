@@ -24,6 +24,20 @@ assert GH_API_SPEC and GH_API_SPEC.loader
 gh_api = importlib.util.module_from_spec(GH_API_SPEC)
 GH_API_SPEC.loader.exec_module(gh_api)
 
+SETTINGS_SPEC = importlib.util.spec_from_file_location(
+    "verify_repository_settings", SCRIPTS_DIR / "verify-repository-settings.py"
+)
+assert SETTINGS_SPEC and SETTINGS_SPEC.loader
+settings_verifier = importlib.util.module_from_spec(SETTINGS_SPEC)
+SETTINGS_SPEC.loader.exec_module(settings_verifier)
+
+LINK_REPORT_SPEC = importlib.util.spec_from_file_location(
+    "report_external_links", SCRIPTS_DIR / "report-external-links.py"
+)
+assert LINK_REPORT_SPEC and LINK_REPORT_SPEC.loader
+link_reporter = importlib.util.module_from_spec(LINK_REPORT_SPEC)
+LINK_REPORT_SPEC.loader.exec_module(link_reporter)
+
 
 class ExtractReposTests(unittest.TestCase):
     def test_extracts_normalized_unique_repository_links(self) -> None:
@@ -376,6 +390,60 @@ class FreshnessWorkflowTests(unittest.TestCase):
                 self.assertEqual(result.returncode, status, result.stderr)
                 self.assertIn("validator output", summary.read_text())
                 self.assertEqual("Validation failed" in summary.read_text(), status != 0)
+
+
+class RepositorySettingsTests(unittest.TestCase):
+    def test_accepts_expected_protection(self) -> None:
+        protection = {
+            "required_status_checks": {
+                "contexts": ["secret-scan", "validate-repos", "awesome-lint"],
+                "strict": True,
+            },
+            "enforce_admins": {"enabled": True},
+        }
+        self.assertEqual(settings_verifier.evaluate_protection(protection), [])
+
+    def test_reports_missing_checks_and_admin_enforcement(self) -> None:
+        protection = {
+            "required_status_checks": {"contexts": ["awesome-lint"], "strict": False},
+            "enforce_admins": {"enabled": False},
+        }
+        errors = settings_verifier.evaluate_protection(protection)
+        self.assertEqual(len(errors), 3)
+        self.assertTrue(any("required checks" in error for error in errors))
+        self.assertTrue(any("up to date" in error for error in errors))
+        self.assertTrue(any("administrators" in error for error in errors))
+
+
+class ExternalLinkReportTests(unittest.TestCase):
+    def test_extracts_non_github_http_links(self) -> None:
+        text = (
+            "[Spec](https://www.w3.org/TR/example) [Repository](https://github.com/org/repo)\n"
+            "[Docs](<https://example.org/docs>) [Mail](mailto:help@example.org) [Spec](https://www.w3.org/TR/example)"
+        )
+        self.assertEqual(
+            link_reporter.extract_external_links(text),
+            ["https://example.org/docs", "https://www.w3.org/TR/example"],
+        )
+
+    def test_reports_redirects_and_never_marks_unknown_as_failure(self) -> None:
+        results = [
+            link_reporter.LinkResult("https://example.org", "ok", "HTTP 200"),
+            link_reporter.LinkResult("https://example.net", "redirect", "HTTP 200 → https://www.example.net"),
+            link_reporter.LinkResult("https://missing.example", "broken", "HTTP 404"),
+            link_reporter.LinkResult("https://slow.example", "unknown", "TimeoutError"),
+        ]
+        report = link_reporter.render_report(results)
+        self.assertIn("1 ok, 1 redirects, 1 broken, 1 unknown", report)
+        self.assertIn("Advisory only", report)
+
+    def test_treats_access_denied_as_unknown_and_not_found_as_broken(self) -> None:
+        denied = HTTPError("url", 403, "forbidden", {}, None)
+        missing = HTTPError("url", 404, "not found", {}, None)
+        with patch.object(link_reporter, "_request", side_effect=denied):
+            self.assertEqual(link_reporter.check_link("https://blocked.example").status, "unknown")
+        with patch.object(link_reporter, "_request", side_effect=missing):
+            self.assertEqual(link_reporter.check_link("https://missing.example").status, "broken")
 
 
 if __name__ == "__main__":
