@@ -32,3 +32,12 @@ already taken.
 
 Maintainer commits from 2026-07-05 onward are SSH-signed. Earlier commits may
 be unsigned and are retained to avoid rewriting public history.
+
+## Review cadence
+
+Review this policy alongside the monthly repository-settings check and the
+quarterly maintenance review. Confirm that secret scanning, branch protection,
+Action pinning, and credential-response guidance still match the live
+repository controls.
+
+Last reviewed: 2026-09-15.
