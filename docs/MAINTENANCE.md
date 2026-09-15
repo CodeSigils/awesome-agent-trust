@@ -142,7 +142,8 @@ regardless.
 | `validate-repos` | checkout -> `npm test` (validator unit tests) -> `validate-repos.py` with `GH_TOKEN: ${{ github.token }}` | Missing/archived repos, ordering, config errors                |
 | `secret-scan`    | full-history checkout (`fetch-depth: 0`) -> `gitleaks/gitleaks-action@<sha> # v3.0.0` with `GITHUB_TOKEN` | An accidentally committed secret in the PR                     |
 
-All action references are SHA-pinned with a `# vN` comment; the freshness
+All action references are SHA-pinned with a `# vN` comment, and repository
+settings require SHA pinning for future workflow changes. The freshness
 workflow below reports when a pin falls behind its major tag.
 
 ### dependency-freshness.yml — the weekly advisory report
@@ -366,9 +367,9 @@ process for replacing them when needed.
    administrators. Run `verify-repository-settings.py` with an authenticated
    GitHub CLI session. Confirm whether direct pushes are permitted; the
    preferred path is a pull request.
-3. In **Settings → Actions → General**, confirm workflows are enabled and that
-   scheduled workflows may run. Check the allowed-actions policy before
-   changing any pinned action.
+3. In **Settings → Actions → General**, confirm workflows are enabled,
+   scheduled workflows may run, and SHA pinning is required. Check the
+   allowed-actions policy before changing any pinned action.
 4. Verify repository variables and secrets. CI uses the automatic
    `GITHUB_TOKEN`; `RUNNER_X86_64` is an optional runner-label variable. Local
    API checks may use `GH_TOKEN` or `GITHUB_TOKEN`, or the GitHub CLI token.
@@ -460,6 +461,8 @@ As of 2026-09-15:
   `main` requires all three checks and applies branch protection to
   administrators; no approving-review requirement is configured for the solo
   maintainer.
+- GitHub Actions are enabled with SHA pinning required; existing workflow
+  action references remain pinned to full commit SHAs.
 - `dependency-freshness.yml` reports action SHA drift, advisory drift, and
   external README-link health every Monday; `dependabot.yml` opens weekly
   update PRs.
@@ -482,6 +485,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: classify non-404/410 external-link failures as unknown to avoid false broken-link reports
 - 2026-09-15: remove the independent-approval requirement because the repository has one maintainer; retain all required checks and administrator enforcement
 - 2026-09-15: clear the resolved nmcitra/ktp-rfc LOW_STARS baseline entry and reconcile test, workflow, and advisory counts
+- 2026-09-15: enforce GitHub Actions SHA pinning and document the repository setting
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
