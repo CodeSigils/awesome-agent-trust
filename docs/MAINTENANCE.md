@@ -326,8 +326,9 @@ uvx ruff check .github/scripts tests
 ```
 
 The 2026-09-15 audit found no script lint findings after executable bits and
-UTC date handling were corrected; four non-functional test-style findings
-remain. Ruff, mypy, or pyright should not become required CI checks unless
+UTC date handling were corrected, and the subsequent test cleanup leaves Ruff
+clean across scripts and tests. Ruff, mypy, or pyright should not become
+required CI checks unless
 their configuration, version pin, and maintenance cost are explicitly
 reviewed first.
 
@@ -537,7 +538,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: add weekly token-free advisory triage reporting without state-file changes
 - 2026-09-15: clarify quarterly evidence rules for baseline and exception edits
 - 2026-09-15: mark standalone Python maintenance utilities executable
-- 2026-09-15: document maintainer-only Ruff audit scope and remaining findings
+- 2026-09-15: document maintainer-only Ruff audit scope and subsequent clean-up
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
