@@ -78,6 +78,8 @@ All previously planned items have been implemented.
 - 2026-09-15: restrict GitHub Actions to the three action sources currently
   used by repository workflows.
 - 2026-09-15: clarify quarterly evidence rules for baseline and exception edits.
+- 2026-09-15: audit Python scripts with Ruff; retain static-quality checks as
+  optional until configuration and dependency cost are justified.
 
 ## Future considerations
 
