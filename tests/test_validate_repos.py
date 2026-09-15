@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
+from typing import Self
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
@@ -289,7 +290,7 @@ class GhApiTests(unittest.TestCase):
         attempts = 0
 
         class Response:
-            def __enter__(self) -> Response:
+            def __enter__(self) -> Self:
                 return self
 
             def __exit__(self, *_: object) -> None:
@@ -312,9 +313,8 @@ class GhApiTests(unittest.TestCase):
 
     def test_does_not_retry_http_errors(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
-        with patch.object(gh_api, "urlopen", side_effect=error):
-            with self.assertRaises(HTTPError):
-                gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
+        with patch.object(gh_api, "urlopen", side_effect=error), self.assertRaises(HTTPError):
+            gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
 
     def test_mask_token_replaces_token_in_text(self) -> None:
         self.assertEqual(
@@ -326,9 +326,8 @@ class GhApiTests(unittest.TestCase):
         self.assertEqual(gh_api.mask_token("plain output", None), "plain output")
 
     def test_zero_retries_raises_runtime_error_not_none(self) -> None:
-        with patch.object(gh_api, "urlopen") as fake:
-            with self.assertRaises(RuntimeError):
-                gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=0)
+        with patch.object(gh_api, "urlopen") as fake, self.assertRaises(RuntimeError):
+            gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=0)
         fake.assert_not_called()
 
 
@@ -392,8 +391,13 @@ class FreshnessWorkflowTests(unittest.TestCase):
                 summary = Path(directory) / "summary.md"
                 script = body.replace("/tmp/validator.log", str(Path(directory) / "validator.log"))
                 stub = f'python3() {{ echo "validator output"; return {status}; }}\n'
-                result = subprocess.run(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", stub + script],
-                                        env={**os.environ, "GITHUB_STEP_SUMMARY": str(summary)}, capture_output=True, text=True)
+                result = subprocess.run(
+                    ["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", stub + script],
+                    env={**os.environ, "GITHUB_STEP_SUMMARY": str(summary)},
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
                 self.assertEqual(result.returncode, status, result.stderr)
                 self.assertIn("validator output", summary.read_text())
                 self.assertEqual("Validation failed" in summary.read_text(), status != 0)
