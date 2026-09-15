@@ -306,7 +306,9 @@ use type annotations, docstrings, defensive input/API error handling, and a
 regression suite in `tests/test_validate_repos.py`. CI currently enforces
 Python behavior through `npm test` and the live validator; it does **not** run
 a Python formatter, linter, or static type checker. Do not imply that a clean
-CI run provides those additional guarantees.
+CI run provides those additional guarantees. The scripts are executable
+standalone utilities with `python3` shebangs; CI still invokes them explicitly
+with `python3`.
 
 For every Python change, preserve the existing type-hint and error-handling
 style, add regression coverage for new branches or failure modes, and run:
@@ -316,9 +318,18 @@ python3 -m unittest discover -s tests -v
 python3 -m compileall .github/scripts tests
 ```
 
-Ruff (format/lint) and mypy or pyright (static typing) are possible future
-CI additions, but introducing them would require documenting and reviewing
-their configuration and dependency pins.
+Ruff can be run as a maintainer-only, dependency-isolated audit without
+changing the repository:
+
+```bash
+uvx ruff check .github/scripts tests
+```
+
+The 2026-09-15 audit found no script lint findings after executable bits and
+UTC date handling were corrected; four non-functional test-style findings
+remain. Ruff, mypy, or pyright should not become required CI checks unless
+their configuration, version pin, and maintenance cost are explicitly
+reviewed first.
 
 ## Advisory state files
 
@@ -526,6 +537,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: add weekly token-free advisory triage reporting without state-file changes
 - 2026-09-15: clarify quarterly evidence rules for baseline and exception edits
 - 2026-09-15: mark standalone Python maintenance utilities executable
+- 2026-09-15: document maintainer-only Ruff audit scope and remaining findings
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
