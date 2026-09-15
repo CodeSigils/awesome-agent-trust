@@ -138,4 +138,5 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: update the automation inventory for advisory external-link monitoring
 - 2026-09-15: classify external 403 and other non-404/410 responses as unknown rather than broken
 - 2026-09-15: remove the independent-approval requirement for the solo maintainer
+- 2026-09-15: clear the resolved nmcitra/ktp-rfc LOW_STARS baseline entry and reconcile maintenance state facts
 -->

@@ -1,5 +1,5 @@
 {
-  "reviewed": "2026-09-14",
+  "reviewed": "2026-09-15",
   "advisories": {
     "INACTIVE": [
       "go-a2a/a2a-go", "Ineedsomuchhelp/AINRP", "themanojdesai/python-a2a"
@@ -17,7 +17,7 @@
       "cullis-security/cullis", "enchanter-ai/mimir",
       "hamzzaaamalik/movegate-contracts", "hazennik/asi", "ionalpha/provetrail",
       "jacobsd32-cpu/djd-agent-score", "joyshmitz/ampersona", "logpose-dev/logpose",
-      "martintopalov/repute", "nmcitra/ktp-rfc", "oath-protocol/oath-protocol",
+      "martintopalov/repute", "oath-protocol/oath-protocol",
       "opena2a-org/ai-trust", "originlayer/agent-identity-protocol",
       "priyansh-x/agent-passport", "radotsvetkov/soma", "rioX432/agent-witness",
       "route-ans/route-ans", "saluca-labs/soulguard", "selfradiance/actionwarrant",

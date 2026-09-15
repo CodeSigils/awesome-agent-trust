@@ -111,7 +111,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 30 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 35 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -147,8 +147,8 @@ workflow below reports when a pin falls behind its major tag.
 
 ### dependency-freshness.yml — the weekly advisory report
 
-Triggers: weekly Monday 06:30 UTC and manual dispatch. Runs two scripts and
-appends both reports to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
+Triggers: weekly Monday 06:30 UTC and manual dispatch. Runs three reports and
+appends them to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
 
 1. `report-action-freshness.py` — a "GitHub Action freshness" table of every
    pinned `uses: owner/repo@sha # vN` and whether the SHA matches the latest
@@ -320,8 +320,8 @@ ADVISORIES: N (update the baseline)`; the maintainer clears those entries
 and bumps `reviewed`.
 
 Structure: `advisories` keyed by soft-check name (`INACTIVE`, `LOW_STARS`,
-`NO_LICENSE`), each a list of `owner/repo` strings. As of 2026-09-14 it
-held 3 INACTIVE, 43 LOW_STARS, and 19 NO_LICENSE entries.
+`NO_LICENSE`), each a list of `owner/repo` strings. As of 2026-09-15 it
+holds 3 INACTIVE, 42 LOW_STARS, and 19 NO_LICENSE entries.
 
 ### repo-exceptions.json
 
@@ -438,7 +438,7 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 30 tests
+Expected healthy output: `npm run lint` reports successful linting; all 35 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -460,10 +460,11 @@ As of 2026-09-15:
   `main` requires all three checks and applies branch protection to
   administrators; no approving-review requirement is configured for the solo
   maintainer.
-- `dependency-freshness.yml` reports action SHA drift + advisory drift
-  every Monday; `dependabot.yml` opens weekly update PRs.
-- Validator state: 0 hard failures, 0 new advisories, 65 known, 4 accepted
-  exceptions; `--baseline-audit`: 0 resolved, 43 still below.
+- `dependency-freshness.yml` reports action SHA drift, advisory drift, and
+  external README-link health every Monday; `dependabot.yml` opens weekly
+  update PRs.
+- Validator state: 0 hard failures, 0 new advisories, 64 known, 4 accepted
+  exceptions; `--baseline-audit`: 0 resolved, 42 still below.
 - Previously planned work is complete; the roadmap tracks remaining deferred
   considerations such as external-link scope and scheduled settings
   verification.
@@ -480,6 +481,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: add external-link reporting to the system overview
 - 2026-09-15: classify non-404/410 external-link failures as unknown to avoid false broken-link reports
 - 2026-09-15: remove the independent-approval requirement because the repository has one maintainer; retain all required checks and administrator enforcement
+- 2026-09-15: clear the resolved nmcitra/ktp-rfc LOW_STARS baseline entry and reconcile test, workflow, and advisory counts
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
