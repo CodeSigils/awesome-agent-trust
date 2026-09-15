@@ -439,6 +439,9 @@ them public.
 
 Run from the repository root. Local runs of the two API scripts benefit
 from a token (see [`.env.example`](../.env.example)) but work without one.
+All Python utilities retain their shebangs and executable bits, so they may be
+invoked directly (`./.github/scripts/report-advisory-triage.py`); CI uses
+explicit `python3` invocation for interpreter clarity.
 
 | Command                                                      | Purpose                                          |
 | ------------------------------------------------------------ | ------------------------------------------------ |
@@ -522,6 +525,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: restrict GitHub Actions to checkout, setup-node, and gitleaks
 - 2026-09-15: add weekly token-free advisory triage reporting without state-file changes
 - 2026-09-15: clarify quarterly evidence rules for baseline and exception edits
+- 2026-09-15: mark standalone Python maintenance utilities executable
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
