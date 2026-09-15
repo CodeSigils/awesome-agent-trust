@@ -51,7 +51,8 @@ maintainer-made. A maintainer can run
 uses an existing authenticated GitHub CLI session and makes no changes.
 The weekly advisory report also checks non-GitHub README links without a
 token, commit, pull request, or state file.
-GitHub Actions settings require full-SHA action references.
+GitHub Actions settings require full-SHA action references and permit only
+`actions/checkout`, `actions/setup-node`, and `gitleaks/gitleaks-action`.
 
 ## Open Items
 
@@ -72,6 +73,8 @@ All previously planned items have been implemented.
 - 2026-09-15: remove the independent-approval requirement for the solo
   maintainer while retaining required CI and administrator enforcement.
 - 2026-09-15: enforce SHA-pinned GitHub Actions at the repository level.
+- 2026-09-15: restrict GitHub Actions to the three action sources currently
+  used by repository workflows.
 
 ## Future considerations
 
@@ -142,4 +145,5 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: remove the independent-approval requirement for the solo maintainer
 - 2026-09-15: clear the resolved nmcitra/ktp-rfc LOW_STARS baseline entry and reconcile maintenance state facts
 - 2026-09-15: enforce GitHub Actions SHA pinning
+- 2026-09-15: restrict GitHub Actions to the current checkout, setup-node, and gitleaks sources
 -->
