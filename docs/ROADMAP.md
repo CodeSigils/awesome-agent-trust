@@ -77,6 +77,7 @@ All previously planned items have been implemented.
 - 2026-09-15: enforce SHA-pinned GitHub Actions at the repository level.
 - 2026-09-15: restrict GitHub Actions to the three action sources currently
   used by repository workflows.
+- 2026-09-15: clarify quarterly evidence rules for baseline and exception edits.
 
 ## Future considerations
 

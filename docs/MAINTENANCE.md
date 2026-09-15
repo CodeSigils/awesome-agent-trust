@@ -455,10 +455,26 @@ from a token (see [`.env.example`](../.env.example)) but work without one.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 35 tests
+Expected healthy output: `npm run lint` reports successful linting; all 37 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
+
+### Quarterly advisory review
+
+Run the baseline audit and triage report together:
+
+```bash
+python3 .github/scripts/validate-repos.py --baseline-audit
+python3 .github/scripts/report-advisory-triage.py
+```
+
+Update `.github/advisory-baseline.json` only when the audit provides evidence
+that an advisory is genuinely resolved; a temporary star increase alone is not
+enough to remove a list entry. Update `.github/repo-exceptions.json` only for
+an expired exception after a deliberate retain, revise, or remove decision.
+This keeps the list current while avoiding tokens, workflow complexity, and
+frequent maintenance merges.
 
 ## Review cadence
 
@@ -480,9 +496,9 @@ As of 2026-09-15:
 - GitHub Actions are enabled with SHA pinning required; the allow-list permits
   only `actions/checkout`, `actions/setup-node`, and
   `gitleaks/gitleaks-action`.
-- `dependency-freshness.yml` reports action SHA drift, advisory drift, and
-  external README-link health every Monday; `dependabot.yml` opens weekly
-  update PRs.
+- `dependency-freshness.yml` reports action SHA drift, advisory drift,
+  external README-link health, and exception triage every Monday;
+  `dependabot.yml` opens weekly update PRs.
 - Validator state: 0 hard failures, 0 new advisories, 64 known, 4 accepted
   exceptions; `--baseline-audit`: 0 resolved, 42 still below.
 - Previously planned work is complete; the roadmap tracks remaining deferred
@@ -505,6 +521,7 @@ Last reviewed: 2026-09-15.
 - 2026-09-15: enforce GitHub Actions SHA pinning and document the repository setting
 - 2026-09-15: restrict GitHub Actions to checkout, setup-node, and gitleaks
 - 2026-09-15: add weekly token-free advisory triage reporting without state-file changes
+- 2026-09-15: clarify quarterly evidence rules for baseline and exception edits
 - 2026-09-14: initial maintenance guide covering all automation, scripts, advisory state files, and commands
 - 2026-09-14: reflect hardened exception/baseline input validation (malformed records reported, not crashed) and up-to-date test count (27)
 - 2026-09-14: add new-maintainer handover, access verification, first-day checks, and failure-triage guidance
