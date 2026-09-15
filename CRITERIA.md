@@ -64,7 +64,9 @@ state, not an approval or exception. `.github/repo-exceptions.json` is the only
 place where a reviewed signal may be waived.
 
 The scheduled dependency-freshness workflow reports pinned GitHub Action SHA
-drift. It is advisory and does not replace Dependabot review.
+drift, repository advisory drift, non-GitHub README-link health, and exception
+triage. These freshness and advisory reports are non-blocking and do not
+replace Dependabot review or maintainer decisions.
 
 ## Categorization Rules
 
