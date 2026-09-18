@@ -287,7 +287,7 @@ review cadence for the list and its validation tooling.
 See [contributing.md](contributing.md) for submission guidelines, format
 requirements, and CI checks that run on every pull request.
 
-- Thanks to [piico](https://github.com/piico) for contributing AgentLair.
+- Thanks to [piiiico](https://github.com/piiiico) for contributing AgentLair.
 - Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
 - Thanks to [AffixIO](https://github.com/AffixIO) for contributing AffixIO.
 
