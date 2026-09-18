@@ -40,4 +40,7 @@ quarterly maintenance review. Confirm that secret scanning, branch protection,
 Action pinning, and credential-response guidance still match the live
 repository controls.
 
+See the [maintenance guide](docs/MAINTENANCE.md) for detailed review
+procedures and verification commands.
+
 Last reviewed: 2026-09-15.
