@@ -107,8 +107,9 @@ Every pull request is checked by three CI jobs:
 committed secrets:
 - Runs gitleaks (SHA-pinned action, read-only `contents` scope)
 - Fails the check when a secret is detected. Push scans happen after commits
-  reach GitHub; exposed credentials must be revoked or rotated. Making this
-  job a required branch-protection check remains roadmap work.
+  reach GitHub; exposed credentials must be revoked or rotated. This job is a
+  required branch-protection check on `main` (alongside `awesome-lint` and
+  `validate-repos`), enforced for administrators as well.
 
 Run the corresponding installation, test, lint, and live validation commands
 locally before submitting:

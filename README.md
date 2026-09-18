@@ -222,10 +222,8 @@ Open standards and specifications, including work hosted by foundations and
 community-led efforts. Inclusion does not imply endorsement or foundation
 affiliation unless the entry explicitly says so.
 
-- [AAIF Agent Card MCP](https://github.com/CSOAI-ORG/meok-aaif-agent-card-mcp) - Linux Foundation AAIF Agent Card MCP. Publish `/.well-known/agent-card`, bridge A2A and OASF.
 - [Agentic AI Foundation](https://github.com/api-evangelist/agentic-ai-foundation) - Community repository tracking the Agentic AI Foundation ecosystem.
 - [CapiscIO RFCs](https://github.com/capiscio/capiscio-rfcs) - Request for Comments for CapiscIO protocols and standards. AGCP, trust policies, agent identity.
-- [OASF Agent Directory MCP](https://github.com/CSOAI-ORG/oasf-agent-directory-mcp) - Cisco AGNTCY bridge under Linux Foundation for the OASF Agent Directory.
 
 ---
 
@@ -291,6 +289,7 @@ requirements, and CI checks that run on every pull request.
 
 - Thanks to [piico](https://github.com/piico) for contributing AgentLair.
 - Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
+- Thanks to [AffixIO](https://github.com/AffixIO) for contributing AffixIO.
 
 See [CRITERIA.md](CRITERIA.md) for the full inclusion criteria —
 relevance domains, quality signals (star count, activity, and description are
