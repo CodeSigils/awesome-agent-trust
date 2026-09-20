@@ -347,8 +347,8 @@ ADVISORIES: N (update the baseline)`; the maintainer clears those entries
 and bumps `reviewed`.
 
 Structure: `advisories` keyed by soft-check name (`INACTIVE`, `LOW_STARS`,
-`NO_LICENSE`), each a list of `owner/repo` strings. As of 2026-09-15 it
-holds 3 INACTIVE, 42 LOW_STARS, and 19 NO_LICENSE entries.
+`NO_LICENSE`), each a list of `owner/repo` strings. As of 2026-09-20 it
+holds 2 INACTIVE, 40 LOW_STARS, and 19 NO_LICENSE entries.
 
 ### repo-exceptions.json
 
@@ -502,7 +502,7 @@ adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
 
 ## State facts
 
-As of 2026-09-15:
+As of 2026-09-20:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
@@ -514,15 +514,17 @@ As of 2026-09-15:
 - `dependency-freshness.yml` reports action SHA drift, advisory drift,
   external README-link health, and exception triage every Monday;
   `dependabot.yml` opens weekly update PRs.
-- Validator state: 0 hard failures, 0 new advisories, 64 known, 4 accepted
-  exceptions; `--baseline-audit`: 0 resolved, 42 still below.
+- Validator baseline: 2 INACTIVE, 40 LOW_STARS, and 19 NO_LICENSE entries;
+  the single registered exception waives two soft flags. Live repository state
+  is refreshed by the scheduled validator run.
 - Previously planned work is complete; the roadmap tracks remaining deferred
   considerations such as external-link scope and scheduled settings
   verification.
 
-Last reviewed: 2026-09-15.
+Last reviewed: 2026-09-20.
 
 <!-- Revision history:
+- 2026-09-20: remove AINRP after evidence review and reconcile advisory counts
 - 2026-09-14: fix malformed-input handling, preserve reporting failures, and clarify secret-scan triage; 30 regression tests
 - 2026-09-15: record branch protection requiring awesome-lint, validate-repos, and secret-scan for all users, including administrators
 - 2026-09-15: document credential-exposure response in SECURITY.md and align the handover checklist with all required checks

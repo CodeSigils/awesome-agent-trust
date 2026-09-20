@@ -1,13 +1,13 @@
 {
-  "reviewed": "2026-09-18",
+  "reviewed": "2026-09-20",
   "advisories": {
     "INACTIVE": [
-      "go-a2a/a2a-go", "Ineedsomuchhelp/AINRP", "themanojdesai/python-a2a"
+      "go-a2a/a2a-go", "themanojdesai/python-a2a"
     ],
     "LOW_STARS": [
       "AgnesDevita/DecisionNotary",
       "AuroraAeon/agentattest", "Dylan-Xu410/AgenticTrust",
-      "Ineedsomuchhelp/AINRP", "LineageLabs/awesome-ai-agent-protocols",
+      "LineageLabs/awesome-ai-agent-protocols",
       "Preventra/preventra", "Scaffoldic/forgesight",
       "SwarmProtocol-fun/swarm-hedera", "TrishulaSoftware/trishula-agent-telemetry",
       "Xucion/TEE-backed-Private-Memory-Layer-for-Agents", "agenticpoa/jean-claw-van-damme",

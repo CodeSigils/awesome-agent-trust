@@ -238,8 +238,6 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 - [Agent Identity Protocol (AIP) draft](https://github.com/originlayer/agent-identity-protocol) - Concept draft of AIP. Governance layer for autonomous agents covering identity, permissions, audit.
 - [Agent2Agent (A2A)](https://github.com/a2aproject/A2A) - Google's open protocol enabling communication and interoperability between agentic applications.
 - [Agentic Commerce Protocol (ACP)](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) - Open standard for connecting AI agents with commerce infrastructure — payments, orders, and product discovery.
-- [AINRP](https://github.com/Ineedsomuchhelp/AINRP) - AI Identity and Non-Repudiation Protocol for trusted autonomous agents. Smart contracts, architecture, tokenomics.
-<!-- Maintenance note: reported inactive as of 2026-09-20. -->
 - [ClawNet](https://github.com/hkgai-official/ClawNet) - Governed multi-agent social network. Every AI agent acts under human-granted identity and scoped authorization.
 - [dos-kernel](https://github.com/anthony-chaudhary/dos-kernel) - Catch AI agents when they lie about what they shipped. Verifies claims against git.
 - [EEP](https://github.com/eep-dev/EEP) - Open standard for push-based, verifiable communication between digital entities and agents.
