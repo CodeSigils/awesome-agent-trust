@@ -72,6 +72,26 @@ class CheckRepoTests(unittest.TestCase):
         with patch.object(validator, "fetch_json", side_effect=error):
             self.assertEqual(validator.check_repo("owner/repo")["errors"], ["NOT_FOUND"])
 
+    def test_token_scoped_404_retries_without_credentials(self) -> None:
+        scoped_404 = HTTPError("url", 404, "not visible to token", {}, None)
+        metadata = {
+            "stargazers_count": 10,
+            "description": "Meaningful public repository",
+            "license": {"spdx_id": "MIT"},
+            "pushed_at": "2026-09-01T00:00:00Z",
+        }
+        with patch.object(validator, "fetch_json", side_effect=[scoped_404, metadata]) as fetch:
+            result = validator.check_repo("owner/repo", token="scoped-token")
+        self.assertEqual(result["errors"], [])
+        self.assertIsNone(fetch.call_args_list[1].kwargs.get("token"))
+
+    def test_token_scoped_404_is_not_found_only_after_anonymous_retry(self) -> None:
+        error = HTTPError("url", 404, "missing", {}, None)
+        with patch.object(validator, "fetch_json", side_effect=[error, error]) as fetch:
+            result = validator.check_repo("owner/repo", token="scoped-token")
+        self.assertEqual(result["errors"], ["NOT_FOUND"])
+        self.assertEqual(fetch.call_count, 2)
+
     def test_rate_limit_is_api_error_not_not_found(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
         with patch.object(validator, "fetch_json", side_effect=error):
