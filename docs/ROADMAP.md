@@ -126,9 +126,10 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
 
-Last reviewed: 2026-09-15.
+Last reviewed: 2026-09-20.
 
 <!-- Revision history:
+- 2026-09-20: remove unavailable AffixIO and AINRP entries, reconcile the advisory baseline, and revisit the roadmap
 - 2026-09-14: completed medium audit fixes for input handling, report failure propagation, and accurate security documentation
 - 2026-09-14: initial roadmap; implemented items 1-4 + backlog (scheduled report, triage rule, baseline-audit, threshold constant)
 - 2026-09-14: added open item 1 (automated secret scanning on PRs) after security review; expanded .gitignore credentials patterns and added .env.example
