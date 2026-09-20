@@ -5,12 +5,6 @@
       "checks": ["LOW_STARS", "NO_LICENSE"],
       "reason": "Community specification repository; retain for public protocol review while licensing is clarified.",
       "review_after": "2026-11-01"
-    },
-    {
-      "repo": "AffixIO/SDK",
-      "checks": ["LOW_STARS"],
-      "reason": "AffixIO/SDK ships the affixio npm package with 918 monthly downloads; adoption evidence outweighs the advisory star signal.",
-      "review_after": "2027-09-18"
     }
   ]
 }

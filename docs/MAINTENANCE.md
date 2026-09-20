@@ -113,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 37 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 39 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -198,7 +198,7 @@ produces:
 
 | Signal         | Kind | Condition                                          |
 | -------------- | ---- | -------------------------------------------------- |
-| `NOT_FOUND`    | hard | API returns 404                                    |
+| `NOT_FOUND`    | hard | Authenticated and anonymous API checks both return 404 |
 | `API_ERROR`    | hard | other HTTP errors, timeouts, malformed `pushed_at` |
 | `ARCHIVED`     | hard | `archived: true`                                   |
 | `MISORDERED`   | hard | category entries not alphabetized                  |

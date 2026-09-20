@@ -126,7 +126,6 @@ Fine-grained authorization, delegation, and permission systems for agent tool ex
 
 Public registries, trust scoring, signed receipts, and verifiable attestation.
 
-- [AffixIO](https://www.npmjs.com/package/affixio) - Host-side Know Your Agent / action attestation via npm `affixio` (signed yes/no on host before pay or tool use; not person KYC). Repo listed on the package: [AffixIO/SDK](https://github.com/AffixIO/SDK). Docs: [agent-trust](https://www.affix-io.com/agent-trust/).
 - [agentattest](https://github.com/AuroraAeon/agentattest) - Verifiable provenance for AI coding agents. Binds agent runs, diffs, PRs, artifacts, and approvals into attestations.
 - [AgentGuard](https://github.com/GoPlusSecurity/agentguard) - Security guard for AI agents. Blocks malicious skills, prevents data leaks, protects secrets. 24 detection rules.
 - [agentregistry](https://github.com/agentregistry-dev/agentregistry) - Centralized, curated registry for AI agent skills.
@@ -234,11 +233,13 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 
 - [A2A .NET](https://github.com/neuroglia-io/a2a-net) - .NET implementation of the A2A protocol for secure, interoperable agent communication.
 - [A2A Go](https://github.com/go-a2a/a2a-go) - Go implementation of the A2A protocol for agent interoperability.
+<!-- Maintenance note: reported inactive as of 2026-09-20. -->
 - [A2A Rust](https://github.com/tomtom215/a2a-rust) - Type-safe, async Rust SDK for the Agent2Agent (A2A) protocol.
 - [Agent Identity Protocol (AIP) draft](https://github.com/originlayer/agent-identity-protocol) - Concept draft of AIP. Governance layer for autonomous agents covering identity, permissions, audit.
 - [Agent2Agent (A2A)](https://github.com/a2aproject/A2A) - Google's open protocol enabling communication and interoperability between agentic applications.
 - [Agentic Commerce Protocol (ACP)](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) - Open standard for connecting AI agents with commerce infrastructure — payments, orders, and product discovery.
 - [AINRP](https://github.com/Ineedsomuchhelp/AINRP) - AI Identity and Non-Repudiation Protocol for trusted autonomous agents. Smart contracts, architecture, tokenomics.
+<!-- Maintenance note: reported inactive as of 2026-09-20. -->
 - [ClawNet](https://github.com/hkgai-official/ClawNet) - Governed multi-agent social network. Every AI agent acts under human-granted identity and scoped authorization.
 - [dos-kernel](https://github.com/anthony-chaudhary/dos-kernel) - Catch AI agents when they lie about what they shipped. Verifies claims against git.
 - [EEP](https://github.com/eep-dev/EEP) - Open standard for push-based, verifiable communication between digital entities and agents.
@@ -249,6 +250,7 @@ Protocols for inter-agent communication, trust networks, and agent economies.
 - [MoveGate Protocol](https://github.com/hamzzaaamalik/movegate-contracts) - Agent Identity, Authorization, and Trust Infrastructure for Sui. On-chain mandate delegation.
 - [Oath Protocol](https://github.com/oath-protocol/oath-protocol) - Protocol for cryptographically verifiable human intent. Agent authorization, local-first, offline-capable.
 - [Python A2A](https://github.com/themanojdesai/python-a2a) - Python library for implementing Google's Agent-to-Agent (A2A) protocol.
+<!-- Maintenance note: reported inactive as of 2026-09-20. -->
 - [sati](https://github.com/cascade-protocol/sati) - Trust infrastructure for million-agent economies on Solana. Identity, reputation, validation.
 - [swarm-hedera](https://github.com/SwarmProtocol-fun/swarm-hedera) - Agent identity, HCS messaging, staking, governance, NFTs, trust verification on Hedera.
 
@@ -290,7 +292,6 @@ requirements, and CI checks that run on every pull request.
 
 - Thanks to [piiiico](https://github.com/piiiico) for contributing AgentLair.
 - Thanks to [InsightFactoryAPP](https://github.com/InsightFactoryAPP) for contributing YYLO.
-- Thanks to [AffixIO](https://github.com/AffixIO) for contributing AffixIO.
 
 See [CRITERIA.md](CRITERIA.md) for the full inclusion criteria —
 relevance domains, quality signals (star count, activity, and description are

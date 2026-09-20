@@ -134,12 +134,30 @@ def check_repo(repo: str, *, token: str | None = None, now: datetime = NOW) -> d
     try:
         data = fetch_json(f"https://api.github.com/repos/{repo}", token=token)
     except HTTPError as exc:
-        if exc.code == 404:
-            result["errors"].append("NOT_FOUND")
+        # A scoped credential can receive a 404 for a public repository it
+        # cannot access. Check once without credentials before treating the
+        # repository as gone; listed repositories are required to be public.
+        if exc.code == 404 and token:
+            try:
+                data = fetch_json(f"https://api.github.com/repos/{repo}")
+            except HTTPError as fallback_exc:
+                if fallback_exc.code == 404:
+                    result["errors"].append("NOT_FOUND")
+                else:
+                    result["errors"].append("API_ERROR")
+                    result["detail"] = f"GitHub returned HTTP {fallback_exc.code} without credentials"
+                return result
+            except (URLError, TimeoutError, OSError, json.JSONDecodeError) as fallback_exc:
+                result["errors"].append("API_ERROR")
+                result["detail"] = str(fallback_exc)
+                return result
         else:
-            result["errors"].append("API_ERROR")
-            result["detail"] = mask_token(f"GitHub returned HTTP {exc.code}", token)
-        return result
+            if exc.code == 404:
+                result["errors"].append("NOT_FOUND")
+            else:
+                result["errors"].append("API_ERROR")
+                result["detail"] = mask_token(f"GitHub returned HTTP {exc.code}", token)
+            return result
     except (URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
         result["errors"].append("API_ERROR")
         result["detail"] = mask_token(str(exc), token)
