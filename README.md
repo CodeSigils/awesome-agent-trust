@@ -190,6 +190,7 @@ Security toolkits, vulnerability scanning, skill vetting, and supply chain secur
 - [clawguard (yourclaw)](https://github.com/yourclaw/clawguard) - Security scanning and trust registry for AI agent skills (Clawdbot, MoltBot, OpenClaw, ClawHub).
 - [hackagent](https://github.com/AISecurityLab/hackagent) - Open-source security toolkit to detect vulnerabilities in your AI agents.
 - [hackmyagent](https://github.com/opena2a-org/hackmyagent) - Security testing toolkit for scanning AI agents and MCP servers and exercising known attack techniques.
+- [KeyDrift](https://keydrift.dev) - Scans deployed HTML and JavaScript for exposed secrets while recognizing public browser credentials that should not be treated as leaks.
 - [MindJack](https://github.com/7h30th3r0n3/MindJack) - Security toolkit that extracts agent memories and rewrites instructions. Red-teaming tool.
 - [ops0 CLI](https://github.com/ops0-ai/ops0-cli) - Cloud infrastructure-plan scanner and governance CLI for agent-generated infrastructure as code.
 - [SecOpsAgentKit](https://github.com/AgentSecOps/SecOpsAgentKit) - Security operations toolkit for AI coding agents. 25+ skills for vulnerability detection, container scanning.
