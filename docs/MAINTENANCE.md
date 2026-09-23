@@ -519,6 +519,8 @@ frequent maintenance merges.
 - **Auto-merge is enabled** (`allow_auto_merge`, enabled 2026-09-23): merge
   with `gh pr merge N --auto --squash --delete-branch` so GitHub absorbs the
   behind-state and stale PRs self-merge once checks pass.
+- **External contributor PRs are review-first, not auto-merged.** `--auto` is
+  for PRs the maintainer has already triaged.
 
 ## Review cadence
 
@@ -554,6 +556,7 @@ As of 2026-09-23:
 Last reviewed: 2026-09-23.
 
 <!-- Revision history:
+- 2026-09-23: clarify that external contributor PRs are not auto-merged
 - 2026-09-23: record the advisory baseline for standards entry links (A2A, ERC-8004, W3C x2) and defer Layer-2 code-host checks
 - 2026-09-23: enable auto-merge and update the git workflow hygiene section
 - 2026-09-23: document git workflow hygiene (squash merges, stale-branch refresh, clone/branch-delete pitfalls)
