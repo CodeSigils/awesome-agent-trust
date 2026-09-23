@@ -494,5 +494,57 @@ class AdvisoryTriageReportTests(unittest.TestCase):
         self.assertIn("`exceptions` is not a list", report)
 
 
+class EntryLinkFlagsTests(unittest.TestCase):
+    def test_extracts_entry_links_and_skips_anchors(self) -> None:
+        text = (
+            "## Projects\n"
+            "- [Alpha](https://github.com/org/repo) - A.\n"
+            "- [Spec](https://www.w3.org/TR/example).\n"
+            "- [Anchor](#projects)\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_text(text, encoding="utf-8")
+            entries = validator.extract_entry_links(path)
+        self.assertEqual(
+            entries,
+            [
+                (2, "Alpha", "https://github.com/org/repo"),
+                (3, "Spec", "https://www.w3.org/TR/example"),
+            ],
+        )
+
+    def test_strips_trailing_punctuation_from_entry_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_text("- [Trailing](https://example.com/a,)\n", encoding="utf-8")
+            entries = validator.extract_entry_links(path)
+        self.assertEqual(entries, [(1, "Trailing", "https://example.com/a")])
+
+    def test_classifies_github_code_hosts_and_external(self) -> None:
+        self.assertEqual(validator.classify_entry_link("https://github.com/org/repo")[0], "github")
+        for host in ("gitlab.com", "codeberg.org", "git.sr.ht", "bitbucket.org"):
+            with self.subTest(host=host):
+                category, found = validator.classify_entry_link(f"https://{host}/org/project")
+                self.assertEqual((category, found), ("code_host", host))
+        self.assertEqual(validator.classify_entry_link("https://keydrift.dev")[0], "external")
+
+    def test_flags_only_unvalidated_hosts(self) -> None:
+        entries = [
+            (1, "Repo", "https://github.com/org/repo"),
+            (2, "GitLab Project", "https://gitlab.com/org/project"),
+            (3, "Spec", "https://www.w3.org/TR/example"),
+        ]
+        flags = validator.entry_flags_for(entries)
+        self.assertEqual(flags["UNVALIDATED_HOST"], ["GitLab Project (gitlab.com)"])
+        self.assertEqual(flags["UNVALIDATED_LINK"], ["Spec (www.w3.org)"])
+
+    def test_github_only_entries_produce_no_flags(self) -> None:
+        self.assertEqual(
+            validator.entry_flags_for([(1, "Repo", "https://github.com/org/repo")]),
+            {},
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
