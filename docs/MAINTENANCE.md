@@ -503,8 +503,9 @@ frequent maintenance merges.
 - **Merge related PRs oldest-first**, then refresh the later branch. A PR
   merged second always lands behind the first (branch protection requires
   checks on the latest commit) — this is the "second PR goes stale" pattern.
-- **Refreshing a stale branch** (auto-merge is disabled for this repo, and
-  `gh pr update-branch` / the update-branch API are unavailable):
+- **Refreshing a stale branch** (auto-merge is enabled for this repo; the
+  local recipe below covers fork PRs and cases where `--auto` was not set,
+  since `gh pr update-branch` / the update-branch API are unavailable):
   `git -c credential.helper= fetch origin main && git rebase origin/main`,
   then `git push --force https://oauth2:$(gh auth token)@github.com/CodeSigils/awesome-agent-trust.git HEAD:<branch>`.
   Force-pushing your own feature branch is safe.
@@ -513,8 +514,9 @@ frequent maintenance merges.
 - **`git branch -d` rejects squash-merged branches** — "not fully merged" is
   expected, because the squash commit isn't a descendant of the branch tip.
   Confirm the content is on main, then delete with `-D`.
-- **Eventually, enable auto-merge** (`enablePullRequestAutoMerge`) so
-  `gh pr merge --auto` absorbs the behind-state and stale PRs self-merge.
+- **Auto-merge is enabled** (`allow_auto_merge`, enabled 2026-09-23): merge
+  with `gh pr merge N --auto --squash --delete-branch` so GitHub absorbs the
+  behind-state and stale PRs self-merge once checks pass.
 
 ## Review cadence
 
@@ -549,6 +551,7 @@ As of 2026-09-20:
 Last reviewed: 2026-09-23.
 
 <!-- Revision history:
+- 2026-09-23: enable auto-merge and update the git workflow hygiene section
 - 2026-09-23: document git workflow hygiene (squash merges, stale-branch refresh, clone/branch-delete pitfalls)
 - 2026-09-23: reconcile maintenance docs with validator and criteria changes (non-GitHub entry-link advisories, recognized-code-host + license criteria)
 - 2026-09-20: remove AINRP after evidence review and reconcile advisory counts
