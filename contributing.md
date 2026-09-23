@@ -24,7 +24,11 @@ Participation is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
   case-insensitively. Do not use position to imply ranking.
 - **No commercial products** unless they have a meaningful open-source
   component or are an open standard.
-- **No projects without a public repository or documentation site.**
+- **No projects without a public source repository on a recognized code
+  host.** Software entries normally require an open-source license as well;
+  standards and specifications are the documented exception, see
+  [CRITERIA.md](CRITERIA.md). Landing pages and documentation sites alone do
+  not qualify.
 - **Check for duplicates** before submitting.
 
 ## Pre-Submission Checklist
@@ -57,7 +61,8 @@ Before opening a pull request, confirm each item:
 Projects must meet the relevance and exclusion rules in `CRITERIA.md`. The
 following are positive quality signals, not interchangeable automatic gates:
 
-1. Has a public GitHub repository with meaningful activity
+1. Has a public repository with meaningful activity (GitHub or another
+   recognized code host)
 2. Is an open standard or specification (W3C, IETF, EIP, etc.)
 3. Is a Linux Foundation or similarly governed open-source project
 4. Has documented real-world usage or adoption
@@ -102,6 +107,10 @@ Every pull request is checked by three CI jobs:
 - List entry in README includes a description after the link (soft flag)
 - Repository pushed to within the last 12 months (advisory soft flag;
   GitHub's `pushed_at` value is a maintenance proxy)
+- Non-GitHub entry links surface as advisory soft flags instead of passing
+  silently: a recognized code host (GitLab, Codeberg, sr.ht, Bitbucket) is
+  flagged for minimal manual validation, and any other external destination is
+  flagged for maintainer review
 
 **secret-scan** — scans every push and pull request for accidentally
 committed secrets:

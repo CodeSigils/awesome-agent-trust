@@ -39,6 +39,8 @@ Projects listed on this index are checked by the repo validation script
 | Recent activity            | Repository push within the last 12 months                                 | Advisory soft flag; `pushed_at` is only a maintenance proxy                    |
 | Meaningful description     | ≥15 characters describing what it does                                    | Soft flag                                                                      |
 | List entry format          | `- [Name](url) - Description` (must include description after link)       | Soft flag                                                                      |
+| Entry code host            | Entry links a recognized non-GitHub code host (GitLab, Codeberg, sr.ht, Bitbucket, or similar) | Advisory soft flag; existence, license, and activity are not machine-validated the way GitHub entries are |
+| External link              | Entry links a website or unrecognized host                               | Advisory soft flag; requires maintainer review of the destination                    |
 | Category ordering          | Display names are alphabetical within each category                       | **Hard failure**                                                               |
 
 **Hard failures** must be fixed before a PR can merge. If a repository is
@@ -57,6 +59,10 @@ sub-5-star repository
 should document adoption evidence and request a
 `.github/repo-exceptions.json` entry rather than accepting the advisory
 flag. See `contributing.md` for details.
+
+Entries that link a recognized non-GitHub code host or another external
+destination are surfaced as advisory soft flags, so the destination is
+reviewed instead of silently skipping validation.
 
 The dated `.github/advisory-baseline.json` records already-observed soft flags
 so scheduled runs emphasize new and resolved signals. It is derived monitoring
@@ -79,7 +85,10 @@ replace Dependabot review or maintainer decisions.
   within each category. Position does not represent rank or endorsement.
 - **Standards and specifications** may receive narrowly documented exceptions
   in `.github/repo-exceptions.json`. Repository-name keywords are not evidence
-  of standards status or foundation affiliation.
+  of standards status or foundation affiliation. Standards published on a
+  website rather than a code host (for example W3C or EIP documents) surface as
+  external-link advisories; after a maintainer review, those known flags can be
+  recorded in `.github/advisory-baseline.json`.
 - **Exceptions are evidence records, not automatic acceptance.** Each one must
   name the repository, the exact checks waived, the reason, and a review date.
 
@@ -90,7 +99,9 @@ Projects are excluded if they:
 - Do not relate to agent identity, trust, governance, or security
 - Are tutorials, samples, hackathon demos, or workshop materials, unless the
   artifact is the canonical implementation of an included specification
-- Have no public repository or documentation
+- Have no public source repository on a recognized code host, or be software
+  without an open-source license (landing pages and documentation sites alone
+  do not qualify unless the entry is a standard or specification)
 - Are purely commercial products without an open-source component
 - Are duplicates of another listed project with the same scope
 
