@@ -79,7 +79,10 @@ def entry_flags_for(entries: list[tuple[int, str, str]]) -> dict[str, list[str]]
 
     GitHub links are validated in full by extract_repos(); recognized
     non-GitHub code hosts and other external sites get advisory flags so a
-    maintainer reviews them instead of letting them pass silently.
+    maintainer reviews them instead of letting them pass silently. For
+    recognized code hosts (UNVALIDATED_HOST) the maintainer should verify
+    existence, license, and activity by hand; for other external sites
+    (UNVALIDATED_LINK) a full destination review is expected.
     """
     flags: dict[str, list[str]] = {}
     for _line, name, url in entries:
