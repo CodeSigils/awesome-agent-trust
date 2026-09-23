@@ -491,6 +491,29 @@ an expired exception after a deliberate retain, revise, or remove decision.
 This keeps the list current while avoiding tokens, workflow complexity, and
 frequent maintenance merges.
 
+## Git workflow hygiene
+
+- **Squash-merge every PR** (`gh pr merge N --squash --delete-branch`). Main
+  history stays one commit per PR, and `--delete-branch` keeps remote hygiene
+  automatic.
+- **Start new branches from a synced main**: `git checkout main && git pull`
+  first. Any merge to main instantly makes other open PR branches go stale.
+- **Merge related PRs oldest-first**, then refresh the later branch. A PR
+  merged second always lands behind the first (branch protection requires
+  checks on the latest commit) — this is the "second PR goes stale" pattern.
+- **Refreshing a stale branch** (auto-merge is disabled for this repo, and
+  `gh pr update-branch` / the update-branch API are unavailable):
+  `git -c credential.helper= fetch origin main && git rebase origin/main`,
+  then `git push --force https://oauth2:$(gh auth token)@github.com/CodeSigils/awesome-agent-trust.git HEAD:<branch>`.
+  Force-pushing your own feature branch is safe.
+- **Use a full clone, not `--depth 1`.** Shallow clones have no
+  remote-tracking refs, which is why `--force-with-lease` fails there.
+- **`git branch -d` rejects squash-merged branches** — "not fully merged" is
+  expected, because the squash commit isn't a descendant of the branch tip.
+  Confirm the content is on main, then delete with `-D`.
+- **Eventually, enable auto-merge** (`enablePullRequestAutoMerge`) so
+  `gh pr merge --auto` absorbs the behind-state and stale PRs self-merge.
+
 ## Review cadence
 
 The [Review Cadence](ROADMAP.md#review-cadence) table in ROADMAP.md is the
@@ -524,6 +547,7 @@ As of 2026-09-20:
 Last reviewed: 2026-09-20.
 
 <!-- Revision history:
+- 2026-09-23: document git workflow hygiene (squash merges, stale-branch refresh, clone/branch-delete pitfalls)
 - 2026-09-20: remove AINRP after evidence review and reconcile advisory counts
 - 2026-09-14: fix malformed-input handling, preserve reporting failures, and clarify secret-scan triage; 30 regression tests
 - 2026-09-15: record branch protection requiring awesome-lint, validate-repos, and secret-scan for all users, including administrators
