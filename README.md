@@ -16,6 +16,10 @@
 > approach, inspect its first-party documentation, current maintenance state,
 > license, threat model, and fit for the project's observed problem.
 
+> **For agents working on this repository:** read
+> `docs/MAINTENANCE.md` first. It documents the validation gates, advisory
+> state files, and branch/PR hygiene that apply to every change in this repo.
+
 This project follows the structural conventions of an Awesome list while
 intentionally covering an emerging ecosystem more broadly than a traditional
 personal-recommendation shortlist. Entries are alphabetized within categories;
