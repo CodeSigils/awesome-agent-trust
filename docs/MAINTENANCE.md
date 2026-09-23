@@ -351,8 +351,10 @@ ADVISORIES: N (update the baseline)`; the maintainer clears those entries
 and bumps `reviewed`.
 
 Structure: `advisories` keyed by soft-check name (`INACTIVE`, `LOW_STARS`,
-`NO_LICENSE`), each a list of `owner/repo` strings. As of 2026-09-20 it
-holds 2 INACTIVE, 40 LOW_STARS, and 19 NO_LICENSE entries.
+`NO_LICENSE`, `UNVALIDATED_LINK`), each a list of item strings (for GitHub
+entries the `owner/repo` pair; for non-GitHub entry links, the display name
+and host). As of 2026-09-23 it holds 2 INACTIVE, 40 LOW_STARS, 19
+NO_LICENSE, and 4 UNVALIDATED_LINK entries.
 
 ### repo-exceptions.json
 
@@ -529,7 +531,7 @@ adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
 
 ## State facts
 
-As of 2026-09-20:
+As of 2026-09-23:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
@@ -541,16 +543,18 @@ As of 2026-09-20:
 - `dependency-freshness.yml` reports action SHA drift, advisory drift,
   external README-link health, and exception triage every Monday;
   `dependabot.yml` opens weekly update PRs.
-- Validator baseline: 2 INACTIVE, 40 LOW_STARS, and 19 NO_LICENSE entries;
+- Validator baseline: 2 INACTIVE, 40 LOW_STARS, 19 NO_LICENSE, and 4
+  UNVALIDATED_LINK entries;
   the single registered exception waives two soft flags. Live repository state
   is refreshed by the scheduled validator run.
 - Previously planned work is complete; the roadmap tracks remaining deferred
-  considerations such as external-link scope and scheduled settings
-  verification.
+  considerations such as Layer-2 machine checks for recognized non-GitHub
+  code hosts and scheduled settings verification.
 
 Last reviewed: 2026-09-23.
 
 <!-- Revision history:
+- 2026-09-23: record the advisory baseline for standards entry links (A2A, ERC-8004, W3C x2) and defer Layer-2 code-host checks
 - 2026-09-23: enable auto-merge and update the git workflow hygiene section
 - 2026-09-23: document git workflow hygiene (squash merges, stale-branch refresh, clone/branch-delete pitfalls)
 - 2026-09-23: reconcile maintenance docs with validator and criteria changes (non-GitHub entry-link advisories, recognized-code-host + license criteria)
