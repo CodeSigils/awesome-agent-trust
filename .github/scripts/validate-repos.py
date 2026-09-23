@@ -16,6 +16,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 
 from gh_api import fetch_json, mask_token, resolve_token
 
@@ -27,8 +28,18 @@ NOW = datetime.now(timezone.utc)
 MAX_WORKERS = 8
 
 HARD_ERRORS = {"NOT_FOUND", "ARCHIVED", "API_ERROR", "CONFIG_ERROR", "MISORDERED"}
-SOFT_ERRORS = {"NO_LICENSE", "LOW_STARS", "INACTIVE", "WEAK_DESC", "BARE_ENTRY"}
+SOFT_ERRORS = {
+    "NO_LICENSE",
+    "LOW_STARS",
+    "INACTIVE",
+    "WEAK_DESC",
+    "BARE_ENTRY",
+    "UNVALIDATED_HOST",
+    "UNVALIDATED_LINK",
+}
 STAR_THRESHOLD = 5
+CODE_HOSTS = {"gitlab.com", "codeberg.org", "git.sr.ht", "bitbucket.org"}
+ENTRY_LINK_RE = re.compile(r"^- \[([^]]+)\]\((https?://[^)\s]+)")
 
 
 def extract_repos(path: Path) -> set[str]:
@@ -41,6 +52,46 @@ def extract_repos(path: Path) -> set[str]:
         if len(parts) >= 2 and parts[0] and parts[1]:
             repos.add(f"{parts[0]}/{parts[1]}")
     return repos
+
+
+def extract_entry_links(path: Path) -> list[tuple[int, str, str]]:
+    """Extract (line, display name, url) for each Markdown list entry link."""
+    entries: list[tuple[int, str, str]] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        match = ENTRY_LINK_RE.match(line.strip())
+        if match:
+            entries.append((line_number, match.group(1), match.group(2).rstrip(".,)")))
+    return entries
+
+
+def classify_entry_link(url: str) -> tuple[str, str]:
+    """Return (category, host) for an entry URL: github / code_host / external."""
+    host = (urlsplit(url).hostname or "unknown").lower()
+    if host == "github.com":
+        return "github", host
+    if host in CODE_HOSTS:
+        return "code_host", host
+    return "external", host
+
+
+def entry_flags_for(entries: list[tuple[int, str, str]]) -> dict[str, list[str]]:
+    """Map entry links to advisory flags for hosts that skip automated checks.
+
+    GitHub links are validated in full by extract_repos(); recognized
+    non-GitHub code hosts and other external sites get advisory flags so a
+    maintainer reviews them instead of letting them pass silently. For
+    recognized code hosts (UNVALIDATED_HOST) the maintainer should verify
+    existence, license, and activity by hand; for other external sites
+    (UNVALIDATED_LINK) a full destination review is expected.
+    """
+    flags: dict[str, list[str]] = {}
+    for _line, name, url in entries:
+        category, host = classify_entry_link(url)
+        if category == "github":
+            continue
+        flag = "UNVALIDATED_HOST" if category == "code_host" else "UNVALIDATED_LINK"
+        flags.setdefault(flag, []).append(f"{name} ({host})")
+    return flags
 
 
 def load_exceptions(path: Path, *, today: date | None = None) -> tuple[dict[str, set[str]], list[str]]:
@@ -351,6 +402,8 @@ def main() -> int:
         active_flags["MISORDERED"] = misordered_sections
     if config_errors:
         active_flags["CONFIG_ERROR"] = config_errors
+    for flag, items in entry_flags_for(extract_entry_links(README_PATH)).items():
+        active_flags.setdefault(flag, []).extend(items)
 
     comparison_complete = not any("API_ERROR" in result["errors"] for result in results)
     current_advisories, new_advisories, resolved_advisories = compare_advisories(
