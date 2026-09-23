@@ -39,7 +39,7 @@ Projects listed on this index are checked by the repo validation script
 | Recent activity            | Repository push within the last 12 months                                 | Advisory soft flag; `pushed_at` is only a maintenance proxy                    |
 | Meaningful description     | ≥15 characters describing what it does                                    | Soft flag                                                                      |
 | List entry format          | `- [Name](url) - Description` (must include description after link)       | Soft flag                                                                      |
-| Entry code host            | Entry links a recognized non-GitHub code host (GitLab, Codeberg, sr.ht, Bitbucket, or similar) | Advisory soft flag; the destination is not machine-validated the way GitHub entries are |
+| Entry code host            | Entry links a recognized non-GitHub code host (GitLab, Codeberg, sr.ht, Bitbucket, or similar) | Advisory soft flag; existence, license, and activity are not machine-validated the way GitHub entries are |
 | External link              | Entry links a website or unrecognized host                               | Advisory soft flag; requires maintainer review of the destination                    |
 | Category ordering          | Display names are alphabetical within each category                       | **Hard failure**                                                               |
 
@@ -99,9 +99,9 @@ Projects are excluded if they:
 - Do not relate to agent identity, trust, governance, or security
 - Are tutorials, samples, hackathon demos, or workshop materials, unless the
   artifact is the canonical implementation of an included specification
-- Have no public source repository on a recognized code host (landing pages
-  and documentation sites alone do not qualify unless the entry is a standard
-  or specification)
+- Have no public source repository on a recognized code host, or be software
+  without an open-source license (landing pages and documentation sites alone
+  do not qualify unless the entry is a standard or specification)
 - Are purely commercial products without an open-source component
 - Are duplicates of another listed project with the same scope
 

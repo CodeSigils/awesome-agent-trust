@@ -24,11 +24,11 @@ Participation is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
   case-insensitively. Do not use position to imply ranking.
 - **No commercial products** unless they have a meaningful open-source
   component or are an open standard.
-- **No projects without a public source repository.** Entries must point to a
-  repository on a recognized code host (GitHub, GitLab, Codeberg, sr.ht,
-  Bitbucket, or similar). Landing pages and documentation sites alone do not
-  qualify; standards and specifications are the documented exception, see
-  [CRITERIA.md](CRITERIA.md).
+- **No projects without a public source repository on a recognized code
+  host.** Software entries normally require an open-source license as well;
+  standards and specifications are the documented exception, see
+  [CRITERIA.md](CRITERIA.md). Landing pages and documentation sites alone do
+  not qualify.
 - **Check for duplicates** before submitting.
 
 ## Pre-Submission Checklist
