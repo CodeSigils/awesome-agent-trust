@@ -88,10 +88,13 @@ should be scoped, configured, and reviewed before implementation. None has an
 owner, target date, or acceptance criteria yet; assigning those is part of
 formally promoting an item into planned work.
 
-1. **External-link scope.** The weekly report checks non-GitHub README links.
-   Consider whether documentation links outside the README merit monitoring;
-   preserve advisory-only handling for redirects, rate limits, and temporary
-   outages.
+1. **External-link scope.** Non-GitHub list entry links are now flagged as
+   advisory soft signals (`UNVALIDATED_HOST` / `UNVALIDATED_LINK`), and the
+   four standards links (A2A, ERC-8004, W3C x2) were baselined on 2026-09-23.
+   Machine checks for recognized non-GitHub code hosts are deferred until a
+   real submission needs them; website-only links stay under manual review.
+   Documentation links outside the README retain advisory-only handling for
+   redirects, rate limits, and temporary outages.
 2. **Scheduled settings verification.** The read-only branch-protection
    verifier supports local and handover reviews. Automating it would require
    a separately managed credential with repository-administration read access;
@@ -129,6 +132,7 @@ a current compromise or CI failure:
 Last reviewed: 2026-09-23.
 
 <!-- Revision history:
+- 2026-09-23: baseline standards entry links and defer Layer-2 code-host machine checks
 - 2026-09-23: note entry-link validation and criteria updates (PRs #31/#32) and KeyDrift rejection (#30)
 - 2026-09-20: remove unavailable AffixIO and AINRP entries, reconcile the advisory baseline, and revisit the roadmap
 - 2026-09-14: completed medium audit fixes for input handling, report failure propagation, and accurate security documentation
