@@ -113,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 39 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 44 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -189,8 +189,10 @@ The core validator and the heart of the review system.
 
 **Input.** Parses every `https://github.com/...` URL from
 [README.md](../README.md) and normalizes it to `owner/repo` pairs. Only
-GitHub URLs are machine-checkable; non-GitHub links (for example
-eips.ethereum.org, W3C specs, Google A2A docs) are out of scope by design.
+GitHub URLs are machine-checked in full; recognized non-GitHub code hosts
+(GitLab, Codeberg, sr.ht, Bitbucket) and other external destinations surface
+as `UNVALIDATED_HOST` / `UNVALIDATED_LINK` advisory soft flags so a
+maintainer reviews them instead of letting them pass silently.
 
 **Per-repository check** (`check_repo`). Fetches
 `https://api.github.com/repos/{repo}` once (concurrently, 8 workers) and
@@ -208,6 +210,8 @@ produces:
 | `INACTIVE`     | soft | last push > 365 days ago                           |
 | `WEAK_DESC`    | soft | description shorter than 15 characters             |
 | `BARE_ENTRY`   | soft | list entry lacks a ` - `/` — ` description         |
+| `UNVALIDATED_HOST` | soft | entry links a recognized non-GitHub code host; maintainer verifies existence, license, and activity |
+| `UNVALIDATED_LINK` | soft | entry links a website or unrecognized host; maintainer reviews the destination |
 
 Hard signals exit with status 1 and block the merge; soft signals are
 advisories that never block. `compare_advisories` refuses to claim
@@ -361,10 +365,8 @@ repository not listed in the README is a `CONFIG_ERROR`. Malformed entries
 contains non-string values, or whose `review_after` is not an ISO date) are
 reported as validation errors instead of crashing the run.
 
-Current entries (all `LOW_STARS` unless noted):
-`CSOAI-ORG/meok-aaif-agent-card-mcp` (2027-08-01),
-`CSOAI-ORG/oasf-agent-directory-mcp` (2027-08-01), and
-`capiscio/capiscio-rfcs` (`LOW_STARS` + `NO_LICENSE`, 2026-11-01).
+Current entry: `capiscio/capiscio-rfcs` (`LOW_STARS` + `NO_LICENSE`,
+2026-11-01).
 
 ## New maintainer handover
 
@@ -470,7 +472,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 37 tests
+Expected healthy output: `npm run lint` reports successful linting; all 44 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -544,10 +546,11 @@ As of 2026-09-20:
   considerations such as external-link scope and scheduled settings
   verification.
 
-Last reviewed: 2026-09-20.
+Last reviewed: 2026-09-23.
 
 <!-- Revision history:
 - 2026-09-23: document git workflow hygiene (squash merges, stale-branch refresh, clone/branch-delete pitfalls)
+- 2026-09-23: reconcile maintenance docs with validator and criteria changes (non-GitHub entry-link advisories, recognized-code-host + license criteria)
 - 2026-09-20: remove AINRP after evidence review and reconcile advisory counts
 - 2026-09-14: fix malformed-input handling, preserve reporting failures, and clarify secret-scan triage; 30 regression tests
 - 2026-09-15: record branch protection requiring awesome-lint, validate-repos, and secret-scan for all users, including administrators
