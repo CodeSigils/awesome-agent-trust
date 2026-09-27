@@ -469,10 +469,45 @@ class ExternalLinkReportTests(unittest.TestCase):
             [
                 "http://creativecommons.org/publicdomain/zero/1.0/",
                 "https://awesome.re",
-                "https://awesome.re/badge.svg",
                 "https://example.org/docs",
-                "https://img.shields.io/badge/License-CC0-lightgrey.svg",
             ],
+        )
+
+    def test_ignores_image_destinations(self) -> None:
+        text = (
+            "[![Badge](https://img.shields.io/badge/License-CC0-lightgrey.SVG?style=flat-square)]"
+            "(https://example.org/license)\n"
+            "[Chart](https://example.org/chart.png?v=2)\n"
+            "[Spec](https://example.org/spec#anchor)\n"
+        )
+        self.assertEqual(
+            link_reporter.extract_external_links(text),
+            ["https://example.org/license", "https://example.org/spec#anchor"],
+        )
+
+    def test_extracts_exactly_the_known_non_github_readme_links(self) -> None:
+        # The expectation is ground truth from an independent CommonMark parser,
+        # not a recording of what this extractor currently emits. Regenerate it
+        # from a parser when the extraction contract changes, never by copying
+        # the extractor's own output, or the test freezes the defect instead of
+        # guarding against it. The 150-odd GitHub entry links cannot make this
+        # brittle: the host filter drops them before they reach the expectation.
+        extracted = link_reporter.extract_external_links(
+            link_reporter.README_PATH.read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            extracted,
+            [
+                "http://creativecommons.org/publicdomain/zero/1.0/",
+                "https://a2a-protocol.org/latest/",
+                "https://awesome.re",
+                "https://eips.ethereum.org/EIPS/eip-8004",
+                "https://www.w3.org/TR/did-core/",
+                "https://www.w3.org/TR/vc-data-model-2.0/",
+            ],
+            "Non-GitHub README links changed. If that change is intended, "
+            "regenerate the expected list from a CommonMark parser, never from "
+            f"extract_external_links output. Extracted now: {extracted}",
         )
 
     def test_reports_redirects_and_never_marks_unknown_as_failure(self) -> None:
