@@ -439,7 +439,9 @@ is incomplete and must not be treated as evidence that a repository is gone.
 ### Failure triage and ownership
 
 - `awesome-lint` or local-link failures: correct README/docs formatting or
-  repository-relative paths, then rerun the local commands.
+  repository-relative paths, then rerun the local commands. A `valid git
+  repository` complaint is not a formatting fault — see
+  [git workflow hygiene](#git-workflow-hygiene).
 - `validate-repos` hard failures: check the specific repository and API error;
   remove/replace archived or missing entries only after confirming the result.
 - `NEW_*` advisories: review evidence, then baseline, exception, or remove the
@@ -521,6 +523,18 @@ frequent maintenance merges.
   Force-pushing your own feature branch is safe.
 - **Use a full clone, not `--depth 1`.** Shallow clones have no
   remote-tracking refs, which is why `--force-with-lease` fails there.
+- **`npm run lint` fails on an unpushed branch** with `Awesome list must
+  reside in a valid git repository`. The message misreports the cause:
+  awesome-lint asks git which remote the current branch is paired with, and
+  that pairing is recorded only in local configuration, which `git push`
+  writes and no clone receives. An absent pairing means *this branch is not
+  on the remote yet*, not *this is not a real repository*. Publish the
+  branch with `git push -u origin HEAD` and rerun the check. Do not hardcode
+  awesome-lint's `--repo-url` option to silence it: that option exists to
+  prove the working copy is the intended repository, and a fixed URL would
+  satisfy the rule even when the wrong repository is cloned. CI is not
+  affected, because the runner clones and the checkout step creates the
+  pairing.
 - **`git branch -d` rejects squash-merged branches** — "not fully merged" is
   expected, because the squash commit isn't a descendant of the branch tip.
   Confirm the content is on main, then delete with `-D`.
@@ -564,6 +578,7 @@ As of 2026-09-23:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: document that `npm run lint` fails on an unpushed branch because the branch-to-remote pairing is local state, and that `--repo-url` must not be used to silence it
 - 2026-09-27: exclude image destinations from the external-link report so badge images are not reported as links, and pin the real README link set with a golden test; 47 regression tests
 - 2026-09-27: match link destinations instead of whole links so badge-wrapped links report their outer target; 45 regression tests
 - 2026-09-23: clarify that external contributor PRs are not auto-merged

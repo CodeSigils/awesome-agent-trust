@@ -131,6 +131,12 @@ python3 .github/scripts/check-markdown-links.py
 python3 .github/scripts/validate-repos.py
 ```
 
+If `npm run lint` reports that the list must reside in a valid git repository,
+the branch has not been published yet. Publish it with `git push -u origin
+HEAD` and rerun; the message names a repository problem when the actual cause
+is local branch state. See the git workflow notes in
+[docs/MAINTENANCE.md](docs/MAINTENANCE.md#git-workflow-hygiene).
+
 ## Submission process
 
 1. Fork this repository and create a focused branch.
