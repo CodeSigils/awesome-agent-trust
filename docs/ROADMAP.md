@@ -88,6 +88,16 @@ All previously planned items have been implemented.
   golden test over the real `README.md` additionally pins the exact set of six
   non-GitHub links, so an extractor that drops or invents one fails even when
   the synthetic fixtures still pass.
+- 2026-09-27: adopt one exit-code contract across the check scripts — 0 clean,
+  1 findings, 2 could not run. CPython already exits 1 on an uncaught
+  exception, so a crash and a real finding were previously indistinguishable in
+  CI. `validate-repos.py` and `check-markdown-links.py` now preflight their
+  required inputs and report an unreadable or undecodable file as exit 2 with
+  `COULD NOT RUN` / `COULD NOT CHECK` rather than crashing or counting it as a
+  finding. `verify-repository-settings.py` already matched; the advisory report
+  scripts keep a hard `return 0` by design. No workflow edit was needed,
+  because both gating scripts run as bare `run:` steps where any nonzero code
+  fails the job.
 
 ## Future considerations
 
@@ -152,6 +162,7 @@ a current compromise or CI failure:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: record the shared exit-code contract (0 clean, 1 findings, 2 could not run) and the required-input preflight that gives exit 2 a meaning
 - 2026-09-27: record external-link extraction fix; answer the external-link scope item by measurement and record [lychee](https://github.com/lycheeverse/lychee) as evaluated and not adopted
 - 2026-09-23: baseline standards entry links and defer Layer-2 code-host machine checks
 - 2026-09-23: note entry-link validation and criteria updates (PRs #31/#32) and KeyDrift rejection (#30)

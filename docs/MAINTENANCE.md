@@ -113,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 47 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 55 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -168,7 +168,8 @@ appends them to the workflow summary page (`$GITHUB_STEP_SUMMARY`):
 
 Soft repository advisories remain non-blocking. The repository-report step
 uses Bash with `pipefail`, preserves the validator output in the summary even
-on failure, and propagates a nonzero exit status for hard failures or crashes.
+on failure, and re-raises the validator's own exit code, so a hard failure and
+an incomplete run fail the step for distinguishable reasons.
 The action-freshness script reports unresolved lookups as `unknown`; these
 require follow-up and do not establish freshness. External-link results are
 also advisory: a remote outage, rate limit, redirect, or broken link does not
@@ -182,6 +183,30 @@ configured; every update still passes the three `validate.yml` jobs before
 merge.
 
 ## Scripts reference
+
+### Exit-code contract
+
+Every check script uses the same three codes, so a CI failure can be triaged
+from its exit code before its log is read:
+
+| Code | Meaning                                                                                     |
+| ---- | ------------------------------------------------------------------------------------------- |
+| `0`  | The check ran and found nothing to report.                                                  |
+| `1`  | The check ran and found a problem. This is the code that fails a gating CI step.            |
+| `2`  | The check could not determine an answer: a required input was missing, unreadable, or undecodable. |
+
+`1` is reserved for conclusions because CPython already claims it — an
+uncaught exception exits `1`, so a crash and a genuine finding would otherwise
+be indistinguishable. `2` therefore carries the environmental case, and matches
+the code `argparse` uses for a usage error. The three advisory report scripts
+(`report-external-links.py`, `report-advisory-triage.py`, and
+`report-action-freshness.py`) deliberately keep a hard `return 0` instead:
+their output is a review signal, not a merge gate.
+
+When a single run both finds problems and cannot complete, `2` takes precedence
+over `1` so that a partial run is never presented as a complete failure set. The
+findings are still printed. Both gating scripts run as bare `run:` steps, so
+any nonzero code fails the job regardless of which code it is.
 
 ### validate-repos.py
 
@@ -217,6 +242,14 @@ Hard signals exit with status 1 and block the merge; soft signals are
 advisories that never block. `compare_advisories` refuses to claim
 "resolved" advisories when any API call failed, so partial metadata never
 produces false resolutions.
+
+Before any API call, the script confirms that `README.md` and both state files
+exist and decode. An unreadable required input prints `COULD NOT RUN`, names the
+file, and exits 2 without spending an API request, because a missing or
+undecodable input is environmental rather than a finding about the list.
+Malformed JSON stays at exit 1 as a `CONFIG_ERROR`, since a broken state file
+is a real defect in a maintainer-owned file. The same preflight guards
+`--baseline-audit`.
 
 **Report sections.** The script prints hard errors, `NEW_<SOFT>` advisories
 (baseline additions), `KNOWN ADVISORIES`, `RESOLVED ADVISORIES (update the
@@ -260,7 +293,9 @@ repository setting, creates a commit, or opens a pull request.
 GitHub requires repository-administration read access for this endpoint, so
 the script is deliberately a maintainer-run check rather than scheduled CI.
 It uses an existing `gh auth login` session or an ephemeral `GH_TOKEN` /
-`GITHUB_TOKEN`; it does not store a token. Run it before a handover and at
+`GITHUB_TOKEN`; it does not store a token. A missing token or an unreadable
+protection response exits 2 and settings drift exits 1, so it already follows
+the [exit-code contract](#exit-code-contract). Run it before a handover and at
 the monthly settings review:
 
 ```bash
@@ -273,8 +308,11 @@ Offline link checker run in the `awesome-lint` job and locally. Walks every
 `*.md` file (excluding `.git` and `node_modules`), extracts inline link
 targets, and resolves repository-relative ones against the filesystem.
 Skips scheme URLs (`https:` etc.), protocol-relative `//` links, `#`
-fragments, and placeholder targets. Exits 1 listing each broken target with
-file and line.
+fragments, and placeholder targets. Exits 0 when every target resolves, 1
+listing each broken target with file and line, and 2 when a file could not be
+read or decoded. An undecodable file is an environmental problem rather than a
+broken link, so it is reported on its own `COULD NOT CHECK` line instead of
+being counted as a finding.
 
 ### report-external-links.py
 
@@ -444,6 +482,10 @@ is incomplete and must not be treated as evidence that a repository is gone.
   [git workflow hygiene](#git-workflow-hygiene).
 - `validate-repos` hard failures: check the specific repository and API error;
   remove/replace archived or missing entries only after confirming the result.
+- A `COULD NOT CHECK` or `COULD NOT RUN` line, or any exit status of 2: the
+  check never reached a conclusion — a required file was missing, unreadable,
+  or not UTF-8. Repair the input before trusting that run; a partial check is
+  not a clean result. See the [exit-code contract](#exit-code-contract).
 - `NEW_*` advisories: review evidence, then baseline, exception, or remove the
   entry according to [CRITERIA.md](../CRITERIA.md); advisories alone do not
   block a merge.
@@ -484,10 +526,11 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 47 tests
+Expected healthy output: `npm run lint` reports successful linting; all 55 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
-links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
-advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
+links resolve` and exits 0; validate-repos prints `SUMMARY: 0 hard failure(s)`
+with advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry,
+and exits 0. A status of 2 means the run was incomplete, not clean.
 
 ### Quarterly advisory review
 
@@ -578,6 +621,7 @@ As of 2026-09-23:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: adopt one exit-code contract for the check scripts — 0 clean, 1 findings, 2 could not run — so an incomplete run is distinguishable from a clean failure set; 55 regression tests
 - 2026-09-27: document that `npm run lint` fails on an unpushed branch because the branch-to-remote pairing is local state, and that `--repo-url` must not be used to silence it
 - 2026-09-27: exclude image destinations from the external-link report so badge images are not reported as links, and pin the real README link set with a golden test; 47 regression tests
 - 2026-09-27: match link destinations instead of whole links so badge-wrapped links report their outer target; 45 regression tests

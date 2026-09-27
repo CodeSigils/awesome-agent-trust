@@ -12,10 +12,18 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main() -> int:
     errors: list[str] = []
+    unreadable: list[str] = []
     for path in sorted(ROOT.rglob("*.md")):
         if ".git" in path.parts or "node_modules" in path.parts:
             continue
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError) as exc:
+            # A file that cannot be decoded leaves the sweep incomplete, which
+            # is neither a clean result nor a finding about a broken link.
+            unreadable.append(f"{path.relative_to(ROOT)}: {exc}")
+            continue
+        for line_number, line in enumerate(lines, 1):
             for target in re.findall(r"\[[^]]+\]\(([^)]+)\)", line):
                 target = target.split("#", 1)[0].strip("<>").strip()
                 if (
@@ -29,6 +37,16 @@ def main() -> int:
                     errors.append(f"{path.relative_to(ROOT)}:{line_number}: missing {target}")
     if errors:
         print("\n".join(errors), file=sys.stderr)
+    for message in unreadable:
+        print(f"COULD NOT CHECK: {message}", file=sys.stderr)
+    if unreadable:
+        print(
+            f"{len(unreadable)} Markdown file(s) could not be read, so this check "
+            "did not cover the whole repository and the result above is incomplete.",
+            file=sys.stderr,
+        )
+        return 2
+    if errors:
         return 1
     print("PASS: all repository-relative Markdown links resolve")
     return 0
