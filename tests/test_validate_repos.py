@@ -457,6 +457,24 @@ class ExternalLinkReportTests(unittest.TestCase):
             ["https://example.org/docs", "https://www.w3.org/TR/example"],
         )
 
+    def test_extracts_target_of_badge_wrapped_link(self) -> None:
+        text = (
+            "[![Awesome](https://awesome.re/badge.svg)](https://awesome.re)\n"
+            "[![CC0](https://img.shields.io/badge/License-CC0-lightgrey.svg)]"
+            "(http://creativecommons.org/publicdomain/zero/1.0/)\n"
+            '[Docs](https://example.org/docs "Title")\n'
+        )
+        self.assertEqual(
+            link_reporter.extract_external_links(text),
+            [
+                "http://creativecommons.org/publicdomain/zero/1.0/",
+                "https://awesome.re",
+                "https://awesome.re/badge.svg",
+                "https://example.org/docs",
+                "https://img.shields.io/badge/License-CC0-lightgrey.svg",
+            ],
+        )
+
     def test_reports_redirects_and_never_marks_unknown_as_failure(self) -> None:
         results = [
             link_reporter.LinkResult("https://example.org", "ok", "HTTP 200"),
