@@ -23,6 +23,10 @@ TIMEOUT_SECONDS = 15
 # parentheses inside URLs intact. Inline links and images are parsed; reference
 # definitions and raw HTML tags are not.
 MARKDOWN_DESTINATION = re.compile(r"\]\(\s*(<[^>]*>|[^\s()]+(?:\([^()]*\)[^\s()]*)*)(?:\s+[^)]*)?\)")
+# Destination-centric matching cannot tell a link from an image, so badge
+# destinations reach the report as if they were links. Exclude them by suffix on
+# the parsed path, so that a query string or fragment cannot disguise one.
+IMAGE_SUFFIXES = (".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif")
 
 
 class LinkResult(NamedTuple):
@@ -38,6 +42,8 @@ def extract_external_links(text: str) -> list[str]:
         target = raw_target.split(maxsplit=1)[0].strip("<>").strip()
         parsed = urlparse(target)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            continue
+        if parsed.path.lower().endswith(IMAGE_SUFFIXES):
             continue
         host = parsed.hostname or ""
         if host == "github.com" or host.endswith(".github.com"):

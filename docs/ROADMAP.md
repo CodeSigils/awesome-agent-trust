@@ -81,9 +81,13 @@ All previously planned items have been implemented.
 - 2026-09-15: audit Python scripts with Ruff; retain static-quality checks as
   optional until configuration and dependency cost are justified.
 - 2026-09-27: fix external-link extraction for badge-wrapped links; the weekly
-  report previously missed 2 of the 8 non-GitHub README links, because the
-  destination pattern stopped at a nested image's closing bracket. Extraction
-  is now covered by a regression test.
+  report previously missed 2 of the 6 non-GitHub README links while reporting
+  two badge images as if they were links, because the destination pattern
+  stopped at a nested image's closing bracket. Image destinations are now
+  excluded by suffix, and both behaviours are covered by regression tests. A
+  golden test over the real `README.md` additionally pins the exact set of six
+  non-GitHub links, so an extractor that drops or invents one fails even when
+  the synthetic fixtures still pass.
 
 ## Future considerations
 
@@ -99,9 +103,11 @@ formally promoting an item into planned work.
    real submission needs them; website-only links stay under manual review.
    Documentation links outside the README retain advisory-only handling for
    redirects, rate limits, and temporary outages. Measured 2026-09-27: across
-   every Markdown file the repository holds 8 non-GitHub `http(s)` links, and
-   all 8 are in `README.md`, so nothing outside the README currently merits
-   monitoring; recheck if the documentation gains external links. The
+   every Markdown file the repository holds 6 non-GitHub `http(s)` links, and
+   all 6 are in `README.md`, so nothing outside the README currently merits
+   monitoring; recheck if the documentation gains external links. The golden
+   test keeps that count honest for `README.md` only, since the script reads
+   that one file, so files elsewhere still need the recheck. The
    general-purpose link checker [lychee](https://github.com/lycheeverse/lychee)
    was evaluated here as a possible replacement and not adopted: it reports
    without rewriting, would need `--exclude-path node_modules` to avoid

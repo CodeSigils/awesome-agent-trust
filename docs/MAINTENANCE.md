@@ -113,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 45 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 47 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -281,15 +281,19 @@ file and line.
 Checks unique non-GitHub `http(s)` Markdown links in `README.md` using HEAD,
 falling back to GET when a server does not support HEAD. Destinations are
 matched rather than whole links, so a badge-wrapped link
-(`[![badge](url)](url)`) contributes both the badge image and the
-outer target; inline links and images are parsed, while reference-style
-definitions and raw HTML tags are not. The report labels
+(`[![badge](url)](url)`) contributes its outer target rather than the badge
+image. Image destinations are recognised by suffix and excluded, so badge
+images are never reported as links; reference-style definitions and raw HTML
+tags are not parsed. The report labels
 links as `ok`, `redirect`, `broken` (a 404 or 410 response), or `unknown`
 (timeouts, rate limits, access denials, 5xx responses, and other transient
 errors).
 It follows redirects and always exits 0: external availability is a review
 signal, not a merge gate. The weekly dependency-freshness workflow writes the
 report to its summary without a token, commit, pull request, or state file.
+A regression test runs the extractor over the real `README.md` and asserts the
+exact set of six non-GitHub links, so a change that drops or invents a link
+fails even when the synthetic fixtures still pass.
 
 ### report-advisory-triage.py
 
@@ -478,7 +482,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 45 tests
+Expected healthy output: `npm run lint` reports successful linting; all 47 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -560,6 +564,7 @@ As of 2026-09-23:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: exclude image destinations from the external-link report so badge images are not reported as links, and pin the real README link set with a golden test; 47 regression tests
 - 2026-09-27: match link destinations instead of whole links so badge-wrapped links report their outer target; 45 regression tests
 - 2026-09-23: clarify that external contributor PRs are not auto-merged
 - 2026-09-23: record the advisory baseline for standards entry links (A2A, ERC-8004, W3C x2) and defer Layer-2 code-host checks
