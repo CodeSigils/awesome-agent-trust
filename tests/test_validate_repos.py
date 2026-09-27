@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -54,6 +55,13 @@ LINK_CHECK_SPEC = importlib.util.spec_from_file_location(
 assert LINK_CHECK_SPEC and LINK_CHECK_SPEC.loader
 link_checker = importlib.util.module_from_spec(LINK_CHECK_SPEC)
 LINK_CHECK_SPEC.loader.exec_module(link_checker)
+
+FRESHNESS_SPEC = importlib.util.spec_from_file_location(
+    "report_action_freshness", SCRIPTS_DIR / "report-action-freshness.py"
+)
+assert FRESHNESS_SPEC and FRESHNESS_SPEC.loader
+freshness_reporter = importlib.util.module_from_spec(FRESHNESS_SPEC)
+FRESHNESS_SPEC.loader.exec_module(freshness_reporter)
 
 
 class ExtractReposTests(unittest.TestCase):
@@ -538,6 +546,30 @@ class ExternalLinkReportTests(unittest.TestCase):
         with patch.object(link_reporter, "_request", side_effect=missing):
             self.assertEqual(link_reporter.check_link("https://missing.example").status, "broken")
 
+    def test_main_returns_0_when_the_readme_is_readable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_text("[spec](https://example.org/spec)\n", encoding="utf-8")
+            out = io.StringIO()
+            with (
+                patch.object(link_reporter, "README_PATH", path),
+                patch.object(link_reporter, "_request", return_value=(200, "https://example.org/spec")),
+                redirect_stdout(out),
+            ):
+                code = link_reporter.main()
+        self.assertEqual(code, 0)
+        self.assertNotIn("COULD NOT CHECK", out.getvalue())
+
+    def test_main_reports_an_unreadable_readme_instead_of_crashing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "README.md"
+            path.write_bytes(b"# Title\n\xff\xfe broken\n")
+            out = io.StringIO()
+            with patch.object(link_reporter, "README_PATH", path), redirect_stdout(out):
+                code = link_reporter.main()
+        self.assertEqual(code, 2)
+        self.assertIn("COULD NOT CHECK", out.getvalue())
+
 
 class AdvisoryTriageReportTests(unittest.TestCase):
     def test_reports_signal_counts_and_exception_status(self) -> None:
@@ -702,6 +734,167 @@ class ExitCodeContractTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("missing.md", err)
         self.assertIn("b.md", err)
+
+
+# The trailing `# v7.0.1` is required by the PINNED pattern, not decoration:
+# drop it and every test below reports "No pinned actions found" instead of
+# failing, so the fixture has to state the pin exactly as a workflow does.
+PINNED_WORKFLOW = (
+    "jobs:\n"
+    "  build:\n"
+    "    steps:\n"
+    "      - uses: actions/checkout@1111111111111111111111111111111111111111 # v7.0.1\n"
+)
+
+
+class ActionFreshnessReportTests(unittest.TestCase):
+    """Cover the Action-SHA freshness reporter.
+
+    This was the only script in `.github/scripts/` with no test binding, so a
+    change to its tag resolution could only surface as a quietly wrong weekly
+    report rather than as a failure.
+    """
+
+    def _write_workflow(self, root: Path, name: str, body: str) -> Path:
+        workflow = root / ".github" / "workflows" / name
+        workflow.parent.mkdir(parents=True, exist_ok=True)
+        workflow.write_text(body, encoding="utf-8")
+        return workflow
+
+    def _run_main(self, root: Path, latest: object) -> tuple[int, str]:
+        """Run main() against a temporary root; pass an exception as `latest`
+        to simulate a lookup that fails for a transient reason.
+        """
+        out = io.StringIO()
+        with (
+            patch.object(freshness_reporter, "REPO_ROOT", root),
+            patch.object(freshness_reporter, "resolve_token", return_value="t"),
+            patch.object(freshness_reporter, "latest_sha") as latest_sha,
+            patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}),
+            redirect_stdout(out),
+        ):
+            if isinstance(latest, BaseException):
+                latest_sha.side_effect = latest
+            else:
+                latest_sha.return_value = latest
+            return freshness_reporter.main(), out.getvalue()
+
+    def test_latest_sha_resolves_a_lightweight_tag_in_one_call(self) -> None:
+        with patch.object(freshness_reporter, "fetch_json") as fetch:
+            fetch.return_value = {"object": {"type": "commit", "sha": "a" * 40}}
+            self.assertEqual(
+                freshness_reporter.latest_sha("actions/checkout", "7", "t"),
+                "a" * 40,
+            )
+        self.assertEqual(fetch.call_count, 1, "a lightweight tag needs no second request")
+
+    def test_latest_sha_follows_an_annotated_tag_to_its_commit(self) -> None:
+        with patch.object(freshness_reporter, "fetch_json") as fetch:
+            fetch.side_effect = [
+                {"object": {"type": "tag", "sha": "b" * 40}},
+                {"object": {"type": "commit", "sha": "c" * 40}},
+            ]
+            self.assertEqual(
+                freshness_reporter.latest_sha("actions/setup-node", "7", "t"),
+                "c" * 40,
+            )
+        self.assertEqual(fetch.call_count, 2, "an annotated tag needs a second request")
+
+    def test_latest_sha_rejects_an_unexpected_tag_object_type(self) -> None:
+        with patch.object(freshness_reporter, "fetch_json") as fetch:
+            fetch.return_value = {"object": {"type": "tree", "sha": "d" * 40}}
+            with self.assertRaises(ValueError):
+                freshness_reporter.latest_sha("owner/action", "1", "t")
+
+    def test_latest_sha_rejects_a_tag_that_does_not_resolve_to_a_commit(self) -> None:
+        with patch.object(freshness_reporter, "fetch_json") as fetch:
+            fetch.side_effect = [
+                {"object": {"type": "tag", "sha": "b" * 40}},
+                {"object": {"type": "tree", "sha": "e" * 40}},
+            ]
+            with self.assertRaises(ValueError):
+                freshness_reporter.latest_sha("owner/action", "1", "t")
+
+    def test_main_reports_a_current_pin(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            code, out = self._run_main(root, "1" * 40)
+        self.assertEqual(code, 0)
+        self.assertIn("current", out)
+        self.assertIn("actions/checkout", out)
+        self.assertIn("validate.yml:4", out)
+
+    def test_main_reports_a_stale_pin(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            code, out = self._run_main(root, "2" * 40)
+        self.assertEqual(code, 0, "a stale pin is a review signal, never a failure")
+        self.assertIn("update available", out)
+
+    def test_main_reports_unknown_when_the_lookup_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            code, out = self._run_main(root, OSError("rate limited"))
+        self.assertEqual(code, 0)
+        self.assertIn("unknown", out)
+
+    def test_main_says_so_when_no_action_is_pinned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", "jobs:\n  build:\n    runs-on: ubuntu-latest\n")
+            code, out = self._run_main(root, "1" * 40)
+        self.assertEqual(code, 0)
+        self.assertIn("No pinned actions found.", out)
+
+    def test_main_writes_the_step_summary_when_the_variable_is_set(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            summary = root / "summary.md"
+            out = io.StringIO()
+            with (
+                patch.object(freshness_reporter, "REPO_ROOT", root),
+                patch.object(freshness_reporter, "resolve_token", return_value="t"),
+                patch.object(freshness_reporter, "latest_sha", return_value="1" * 40),
+                patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                redirect_stdout(out),
+            ):
+                self.assertEqual(freshness_reporter.main(), 0)
+            self.assertIn("actions/checkout", summary.read_text(encoding="utf-8"))
+
+    def test_main_reports_an_unreadable_workflow_instead_of_crashing(self) -> None:
+        # An undecodable workflow is environmental, not a stale pin. It must
+        # not escape as an uncaught exception, because that would exit 1 and
+        # turn a partial report into a red weekly job with no explanation.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workflow = self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            workflow.write_bytes(b"uses: \xff\xfe not utf-8\n")
+            self._write_workflow(root, "other.yml", PINNED_WORKFLOW)
+            code, out = self._run_main(root, "1" * 40)
+        self.assertEqual(code, 2, "an incomplete run must be distinguishable from a finding")
+        self.assertIn("COULD NOT CHECK", out)
+        self.assertIn("other.yml", out, "the readable workflow is still reported")
+
+
+class ScriptInventoryTests(unittest.TestCase):
+    # Measured, not assumed: backticked script paths appear only in the file
+    # inventory table. A prose mention added elsewhere would double-count here
+    # rather than fail, so re-check that before trusting a green result.
+    def test_every_script_has_an_inventory_row(self) -> None:
+        guide = SCRIPTS_DIR.parent.parent / "docs" / "MAINTENANCE.md"
+        documented = set(re.findall(r"`\.github/scripts/([^`]+)`", guide.read_text(encoding="utf-8")))
+        on_disk = {path.name for path in SCRIPTS_DIR.glob("*.py")}
+        self.assertEqual(
+            on_disk,
+            documented,
+            "The maintenance guide's file inventory is out of sync with "
+            ".github/scripts/. Add or remove a row there. On disk: "
+            f"{sorted(on_disk)}. Documented: {sorted(documented)}.",
+        )
 
 
 if __name__ == "__main__":
