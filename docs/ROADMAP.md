@@ -174,21 +174,14 @@ formally promoting an item into planned work.
 3. **Python static quality checks.** Consider pinned Ruff and optionally mypy
    or pyright for the standard-library scripts. This is optional while the
    scripts remain small and are covered by tests.
-4. **`verify-repository-settings.py` has no `main()` coverage.** It is the only
-   remaining check script whose entry point the test suite never calls:
-   `main()` branches on token presence and outcome — no token, HTTP error,
-   network failure, or an unreadable response returns 2, settings drift
-   returns 1, a clean read returns 0 — and none of those five paths is
-   exercised. `evaluate_protection` is tested; the code that turns its result
-   into an exit status is not. This is the highest-value remaining gap because
-   the script is maintainer-invoked rather than CI-invoked, so a regression
-   surfaces as a false all-clear on branch protection instead of a red check.
-   `report-advisory-triage.py` is the one remaining entry point left uncovered
-   on purpose: it is straight-line I/O whose whole failure surface already sits
-   in `load_json` and `render_report`, both of which are tested, so a test that
-   called `main()` would assert argument passing rather than behaviour.
-   Promoting this item means patching `resolve_token` and `fetch_json` in the
-   loaded module and asserting each of the five codes.
+4. **Settings-verifier entry point coverage (completed 2026-09-27).** Tests
+   now cover `verify-repository-settings.py` through its public `main()`:
+   no token and failed or malformed GitHub reads return 2, settings drift
+   returns 1, and the expected protection returns 0. The tests patch only its
+   credential and API boundaries, so they exercise the exit-status contract
+   without needing a live administrative token. `report-advisory-triage.py`
+   remains intentionally without `main()` coverage: it is straight-line I/O
+   whose failure surface already sits in tested `load_json` and `render_report`.
 
 ### Security tightening under consideration
 

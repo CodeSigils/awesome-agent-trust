@@ -441,6 +441,14 @@ class FreshnessWorkflowTests(unittest.TestCase):
 
 
 class RepositorySettingsTests(unittest.TestCase):
+    protection = {
+        "required_status_checks": {
+            "contexts": ["secret-scan", "validate-repos", "awesome-lint"],
+            "strict": True,
+        },
+        "enforce_admins": {"enabled": True},
+    }
+
     def test_accepts_expected_protection(self) -> None:
         protection = {
             "required_status_checks": {
@@ -461,6 +469,50 @@ class RepositorySettingsTests(unittest.TestCase):
         self.assertTrue(any("required checks" in error for error in errors))
         self.assertTrue(any("up to date" in error for error in errors))
         self.assertTrue(any("administrators" in error for error in errors))
+
+    def test_main_returns_2_without_a_token(self) -> None:
+        out = io.StringIO()
+        with patch.object(settings_verifier, "resolve_token", return_value=None), redirect_stdout(out):
+            code = settings_verifier.main()
+        self.assertEqual(code, 2)
+        self.assertIn("authenticate", out.getvalue())
+
+    def test_main_returns_2_when_github_cannot_be_read(self) -> None:
+        for failure in (
+            HTTPError("url", 403, "forbidden", {}, None),
+            URLError("offline"),
+            ValueError("invalid JSON"),
+        ):
+            with (
+                self.subTest(failure=failure),
+                patch.object(settings_verifier, "resolve_token", return_value="test-token"),
+                patch.object(settings_verifier, "fetch_json", side_effect=failure),
+                redirect_stdout(io.StringIO()),
+            ):
+                self.assertEqual(settings_verifier.main(), 2)
+
+    def test_main_returns_1_for_settings_drift(self) -> None:
+        out = io.StringIO()
+        drift = {"required_status_checks": {}, "enforce_admins": {"enabled": False}}
+        with (
+            patch.object(settings_verifier, "resolve_token", return_value="test-token"),
+            patch.object(settings_verifier, "fetch_json", return_value=drift),
+            redirect_stdout(out),
+        ):
+            code = settings_verifier.main()
+        self.assertEqual(code, 1)
+        self.assertIn("SETTINGS DRIFT", out.getvalue())
+
+    def test_main_returns_0_for_expected_protection(self) -> None:
+        out = io.StringIO()
+        with (
+            patch.object(settings_verifier, "resolve_token", return_value="test-token"),
+            patch.object(settings_verifier, "fetch_json", return_value=self.protection),
+            redirect_stdout(out),
+        ):
+            code = settings_verifier.main()
+        self.assertEqual(code, 0)
+        self.assertIn("PASS:", out.getvalue())
 
 
 class ExternalLinkReportTests(unittest.TestCase):
