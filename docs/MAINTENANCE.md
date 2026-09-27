@@ -113,7 +113,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 44 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 45 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -279,7 +279,11 @@ file and line.
 ### report-external-links.py
 
 Checks unique non-GitHub `http(s)` Markdown links in `README.md` using HEAD,
-falling back to GET when a server does not support HEAD. The report labels
+falling back to GET when a server does not support HEAD. Destinations are
+matched rather than whole links, so a badge-wrapped link
+(`[![badge](url)](url)`) contributes both the badge image and the
+outer target; inline links and images are parsed, while reference-style
+definitions and raw HTML tags are not. The report labels
 links as `ok`, `redirect`, `broken` (a 404 or 410 response), or `unknown`
 (timeouts, rate limits, access denials, 5xx responses, and other transient
 errors).
@@ -474,7 +478,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 44 tests
+Expected healthy output: `npm run lint` reports successful linting; all 45 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve`; validate-repos prints `SUMMARY: 0 hard failure(s)` with
 advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry.
@@ -553,9 +557,10 @@ As of 2026-09-23:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-09-23.
+Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: match link destinations instead of whole links so badge-wrapped links report their outer target; 45 regression tests
 - 2026-09-23: clarify that external contributor PRs are not auto-merged
 - 2026-09-23: record the advisory baseline for standards entry links (A2A, ERC-8004, W3C x2) and defer Layer-2 code-host checks
 - 2026-09-23: enable auto-merge and update the git workflow hygiene section

@@ -80,6 +80,10 @@ All previously planned items have been implemented.
 - 2026-09-15: clarify quarterly evidence rules for baseline and exception edits.
 - 2026-09-15: audit Python scripts with Ruff; retain static-quality checks as
   optional until configuration and dependency cost are justified.
+- 2026-09-27: fix external-link extraction for badge-wrapped links; the weekly
+  report previously missed 2 of the 8 non-GitHub README links, because the
+  destination pattern stopped at a nested image's closing bracket. Extraction
+  is now covered by a regression test.
 
 ## Future considerations
 
@@ -94,7 +98,17 @@ formally promoting an item into planned work.
    Machine checks for recognized non-GitHub code hosts are deferred until a
    real submission needs them; website-only links stay under manual review.
    Documentation links outside the README retain advisory-only handling for
-   redirects, rate limits, and temporary outages.
+   redirects, rate limits, and temporary outages. Measured 2026-09-27: across
+   every Markdown file the repository holds 8 non-GitHub `http(s)` links, and
+   all 8 are in `README.md`, so nothing outside the README currently merits
+   monitoring; recheck if the documentation gains external links. The
+   general-purpose link checker [lychee](https://github.com/lycheeverse/lychee)
+   was evaluated here as a possible replacement and not adopted: it reports
+   without rewriting, would need `--exclude-path node_modules` to avoid
+   scanning vendored dependencies, must be configured to stay advisory-only,
+   and probing the 137 GitHub links weekly without a token is a weaker check
+   than the existing `validate-repos.py` API validation. It stays useful as an
+   independent cross-check of extraction.
 2. **Scheduled settings verification.** The read-only branch-protection
    verifier supports local and handover reviews. Automating it would require
    a separately managed credential with repository-administration read access;
@@ -129,9 +143,10 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
 
-Last reviewed: 2026-09-23.
+Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: record external-link extraction fix; answer the external-link scope item by measurement and record [lychee](https://github.com/lycheeverse/lychee) as evaluated and not adopted
 - 2026-09-23: baseline standards entry links and defer Layer-2 code-host machine checks
 - 2026-09-23: note entry-link validation and criteria updates (PRs #31/#32) and KeyDrift rejection (#30)
 - 2026-09-20: remove unavailable AffixIO and AINRP entries, reconcile the advisory baseline, and revisit the roadmap

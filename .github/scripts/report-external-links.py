@@ -16,7 +16,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 README_PATH = REPO_ROOT / "README.md"
 MAX_WORKERS = 8
 TIMEOUT_SECONDS = 15
-MARKDOWN_LINK = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+# Match a link destination rather than a whole link, so that a link whose
+# label is itself an image is not truncated at the label's closing bracket:
+# `[![badge](badge.svg)](target)` yields the badge and the target separately.
+# A label-free match also keeps titled destinations (`](url "Title")`) and
+# parentheses inside URLs intact. Inline links and images are parsed; reference
+# definitions and raw HTML tags are not.
+MARKDOWN_DESTINATION = re.compile(r"\]\(\s*(<[^>]*>|[^\s()]+(?:\([^()]*\)[^\s()]*)*)(?:\s+[^)]*)?\)")
 
 
 class LinkResult(NamedTuple):
@@ -28,7 +34,7 @@ class LinkResult(NamedTuple):
 def extract_external_links(text: str) -> list[str]:
     """Return sorted, unique non-GitHub HTTP(S) Markdown destinations."""
     links: set[str] = set()
-    for raw_target in MARKDOWN_LINK.findall(text):
+    for raw_target in MARKDOWN_DESTINATION.findall(text):
         target = raw_target.split(maxsplit=1)[0].strip("<>").strip()
         parsed = urlparse(target)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
