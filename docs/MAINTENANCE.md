@@ -3,8 +3,9 @@
 This document is the maintainer's reference for awesome-agent-trust: what
 automation exists, which files implement it, how each one works, and the
 commands used to keep the list healthy. It complements
-[ROADMAP.md](ROADMAP.md) (what is planned) — this file is the map of what
-exists today.
+[ROADMAP.md](ROADMAP.md), the dated decision record whose
+[Future considerations](ROADMAP.md#future-considerations) hold the
+outstanding work — this file is the map of what exists today.
 
 ## Updating this document
 
@@ -113,7 +114,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 55 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 68 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -198,10 +199,21 @@ from its exit code before its log is read:
 `1` is reserved for conclusions because CPython already claims it — an
 uncaught exception exits `1`, so a crash and a genuine finding would otherwise
 be indistinguishable. `2` therefore carries the environmental case, and matches
-the code `argparse` uses for a usage error. The three advisory report scripts
-(`report-external-links.py`, `report-advisory-triage.py`, and
-`report-action-freshness.py`) deliberately keep a hard `return 0` instead:
-their output is a review signal, not a merge gate.
+the code `argparse` uses for a usage error.
+
+This contract governs the check scripts in `.github/scripts/`. The test suite
+keeps `unittest`'s own scheme and is not wrapped: it exits `0` on success, `1`
+on a failed assertion, `2` on a usage error, and also `1` on a module that will
+not import. That last collision is accepted deliberately, because a test module
+that will not import is self-evident while it is being written.
+
+The three advisory report scripts (`report-external-links.py`,
+`report-advisory-triage.py`, and `report-action-freshness.py`) deliberately keep
+a hard `return 0` for findings: their output is a review signal, not a merge
+gate. They still exit `2` when they cannot complete. The practical effect in CI
+is that a *finding* can never turn the weekly job red while a *crash* does,
+which is the reason not to add `continue-on-error` to the weekly workflow — that
+would hide exactly those crashes.
 
 When a single run both finds problems and cannot complete, `2` takes precedence
 over `1` so that a partial run is never presented as a complete failure set. The
@@ -326,9 +338,12 @@ tags are not parsed. The report labels
 links as `ok`, `redirect`, `broken` (a 404 or 410 response), or `unknown`
 (timeouts, rate limits, access denials, 5xx responses, and other transient
 errors).
-It follows redirects and always exits 0: external availability is a review
-signal, not a merge gate. The weekly dependency-freshness workflow writes the
-report to its summary without a token, commit, pull request, or state file.
+It follows redirects and exits 0 for findings: external availability is a
+review signal, not a merge gate. The weekly dependency-freshness workflow
+writes the report to its summary without a token, commit, pull request, or
+state file. An undecodable `README.md` exits 2 with a `COULD NOT CHECK` line
+instead of an empty report, because reporting zero links would claim the list
+has no external links.
 A regression test runs the extractor over the real `README.md` and asserts the
 exact set of six non-GitHub links, so a change that drops or invents a link
 fails even when the synthetic fixtures still pass.
@@ -345,9 +360,15 @@ advisory; the weekly workflow appends it to the summary without a token.
 Scans every `.github/workflows/*.yml` for SHA-pinned
 `uses: owner/repo@<40-hex> # vN` references, resolves the latest commit of
 the `vN` tag (following annotated tags), and reports each pin as `current`
-or `update available` (or `unknown` when the API cannot answer — it never
-crashes the run). Output is a "GitHub Action freshness" table written to the
-workflow summary.
+or `update available` (or `unknown` when the API cannot answer). Output is a
+"GitHub Action freshness" table written to the workflow summary.
+
+A workflow file that cannot be read is listed under a `COULD NOT CHECK` heading
+instead of raising, and the script then exits `2` under the contract above. The
+rows it did resolve are still printed, so a partially readable repository never
+produces a report that looks complete. The glob is `*.yml`, which currently
+matches every workflow here; GitHub also accepts `.yaml`, so a workflow added
+with that extension would be skipped silently.
 
 ### Python quality expectations
 
@@ -526,7 +547,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 55 tests
+Expected healthy output: `npm run lint` reports successful linting; all 68 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve` and exits 0; validate-repos prints `SUMMARY: 0 hard failure(s)`
 with advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry,
@@ -621,6 +642,9 @@ As of 2026-09-23:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: guard the external-link reporter's README read so an undecodable file exits 2 with `COULD NOT CHECK` instead of crashing or claiming zero links, and assert that the file inventory matches `.github/scripts/`; 68 regression tests
+- 2026-09-27: describe the roadmap as a dated decision record with the outstanding work in its `Future considerations` section, so this guide and the roadmap agree on what each file is for
+- 2026-09-27: cover the Action-freshness reporter with ten regression tests; report an unreadable workflow under `COULD NOT CHECK` and exit 2 rather than crashing; record the test suite's own exit scheme and the advisory scripts' crash-visibility in the exit-code contract; 65 regression tests
 - 2026-09-27: adopt one exit-code contract for the check scripts — 0 clean, 1 findings, 2 could not run — so an incomplete run is distinguishable from a clean failure set; 55 regression tests
 - 2026-09-27: document that `npm run lint` fails on an unpushed branch because the branch-to-remote pairing is local state, and that `--repo-url` must not be used to silence it
 - 2026-09-27: exclude image destinations from the external-link report so badge images are not reported as links, and pin the real README link set with a golden test; 47 regression tests

@@ -1,10 +1,16 @@
 # Roadmap
 
-This file tracks pending maintenance improvements for awesome-agent-trust.
-It is a documentation-first list: this project has no versioned releases
-(see [SECURITY.md](../SECURITY.md)), so the roadmap is the place where planned
-changes to the list, the validation tooling, and the review process are
-recorded and revisited on a fixed cadence.
+This file is the dated decision record for awesome-agent-trust and the place
+where planned changes to the list, the validation tooling, and the review
+process are held. This project has no versioned releases (see
+[SECURITY.md](../SECURITY.md)), so nothing else preserves that history.
+
+Two kinds of content live here, and the split is deliberate.
+[Future considerations](#future-considerations) holds the outstanding work and
+is the answer to "what is next". [Closed Items](#closed-items) is a dated log of
+what each change did and why: entries are added, and struck only when a later
+entry supersedes them. [Current Automation State](#current-automation-state)
+describes the automation as it stands.
 
 Dates in this file reference the two machine-readable state files they
 affect: the `reviewed` date in `.github/advisory-baseline.json` and the
@@ -16,14 +22,16 @@ marks for the [Review Cadence](#review-cadence) below.
 This roadmap MUST be revisited before and after every meaningful action or
 decision about this repository — every merge, removal, baseline or exception
 edit, CI change, or policy adjustment. Each revisit must also tighten the
-roadmap itself: strike completed items, correct stale estimates or cadence
-notes, and fold lessons learned back into the remaining open items. A
-roadmap that is not re-read before and after each change is not a plan; it
-is documented drift.
+roadmap itself: strike superseded items, correct stale estimates, dates, or
+cadence notes, and fold lessons learned back into the outstanding work.
+Completed entries are retained rather than struck, because the reason a
+decision was made outlives the work it decided; strike one only when a later
+entry replaces it. A roadmap that is not re-read before and after each change
+is not a record; it is documented drift.
 
 ## Current Automation State
 
-As of 2026-09-15, the repo has three pieces of automation, all in `.github/`.
+As of 2026-09-27, the repo has three pieces of automation, all in `.github/`.
 The per-file reference — what each automation file does, how the scripts
 work, and the maintenance commands — lives in
 [MAINTENANCE.md](MAINTENANCE.md), which must be updated alongside this
@@ -41,7 +49,7 @@ Intentional automation gaps (not currently planned for implementation):
 
 - **No auto-updates at all** — by governance design; every baseline/exception change is maintainer-made.
 
-As of 2026-09-15, required PR checks cover format, repository validation, and
+As of 2026-09-27, required PR checks cover format, repository validation, and
 secret scanning. Branch protection applies to administrators. No approving
 review is required because this is a solo-maintainer repository. Dependency
 freshness and advisory drift are reported weekly, and the `LOW_STARS` audit
@@ -54,9 +62,19 @@ reads local state without a token, commit, pull request, or state-file changes.
 GitHub Actions settings require full-SHA action references and permit only
 `actions/checkout`, `actions/setup-node`, and `gitleaks/gitleaks-action`.
 
-## Open Items
+Every check script in `.github/scripts/` follows one
+[exit-code contract](MAINTENANCE.md#exit-code-contract) — 0 clean, 1 findings,
+2 could not run — so an incomplete run stays distinguishable in CI from both a
+clean run and a real finding. The weekly report scripts exit 0 for findings by
+design, which is why the weekly workflow carries no `continue-on-error`.
 
-All previously planned items have been implemented.
+## Closed Items
+
+Every item this roadmap has ever planned has been implemented. The dated entries
+below are a record rather than a queue: each states what a change did and why,
+and none is reopened. Work that is genuinely outstanding is held in
+[Future considerations](#future-considerations); promoting an item from there
+into planned work means starting a new entry here, not reviving an old one.
 
 - 2026-09-14: Gitleaks runs as a third `validate.yml` job (SHA-pinned,
   `contents: read`). Push scans run after commits reach GitHub; they cannot
@@ -98,6 +116,30 @@ All previously planned items have been implemented.
   scripts keep a hard `return 0` by design. No workflow edit was needed,
   because both gating scripts run as bare `run:` steps where any nonzero code
   fails the job.
+- 2026-09-27: cover `report-action-freshness.py`, the last script in
+  `.github/scripts/` with no test binding, with ten regression tests over tag
+  resolution and report rendering. Writing them exposed that the script read
+  each workflow with an unguarded `read_text(encoding="utf-8")`, so an
+  undecodable file raised out of `main()` and exited `1` — the same
+  crash-versus-finding collision the exit-code contract exists to prevent, and
+  a claim the contract section made was therefore false. An unreadable workflow
+  is now listed under `COULD NOT CHECK` and the script exits `2`, keeping the
+  rows it did resolve visible. The contract section now also records that
+  `unittest` keeps its own exit scheme including the `1` collision, and that an
+  advisory script can never fail on a finding but still fails on a crash —
+  which is why the weekly workflow carries no `continue-on-error`.
+- 2026-09-27: close the remaining entry-point coverage gaps and rename this
+  section to `Closed Items`, since it holds no pending work and its own name was
+  the last thing still promising otherwise. `report-external-links.py` read
+  `README.md` with an unguarded `read_text(encoding="utf-8")`, so a non-UTF-8
+  README raised out of `main()` and exited 1 — the same collision the exit-code
+  contract exists to prevent, and a claim the contract section made was
+  therefore false. It now exits 2 with a `COULD NOT CHECK` line, because
+  reporting zero links would assert the list has no external links. Two
+  `main()` tests cover that, and a third test asserts the maintenance guide's
+  file inventory matches `.github/scripts/`, so the inventory cannot drift out of
+  sync silently. `report-advisory-triage.py` stays uncovered on purpose: its
+  failure surface is `load_json` and `render_report`, both already tested.
 
 ## Future considerations
 
@@ -132,6 +174,21 @@ formally promoting an item into planned work.
 3. **Python static quality checks.** Consider pinned Ruff and optionally mypy
    or pyright for the standard-library scripts. This is optional while the
    scripts remain small and are covered by tests.
+4. **`verify-repository-settings.py` has no `main()` coverage.** It is the only
+   remaining check script whose entry point the test suite never calls:
+   `main()` branches on token presence and outcome — no token, HTTP error,
+   network failure, or an unreadable response returns 2, settings drift
+   returns 1, a clean read returns 0 — and none of those five paths is
+   exercised. `evaluate_protection` is tested; the code that turns its result
+   into an exit status is not. This is the highest-value remaining gap because
+   the script is maintainer-invoked rather than CI-invoked, so a regression
+   surfaces as a false all-clear on branch protection instead of a red check.
+   `report-advisory-triage.py` is the one remaining entry point left uncovered
+   on purpose: it is straight-line I/O whose whole failure surface already sits
+   in `load_json` and `render_report`, both of which are tested, so a test that
+   called `main()` would assert argument passing rather than behaviour.
+   Promoting this item means patching `resolve_token` and `fetch_json` in the
+   loaded module and asserting each of the five codes.
 
 ### Security tightening under consideration
 
@@ -162,6 +219,9 @@ a current compromise or CI failure:
 Last reviewed: 2026-09-27.
 
 <!-- Revision history:
+- 2026-09-27: rename `Open Items` to `Closed Items` now that it holds no pending work, record why `report-advisory-triage.py` stays uncovered on purpose, and guard the external-link reporter's README read as exit 2
+- 2026-09-27: make the roadmap a dated record rather than a queue — reframe the header and the Directive around retaining completed entries, refresh the stale `Current Automation State` anchors, and scope the untested `verify-repository-settings.py` entry point as deferred work
+- 2026-09-27: cover the Action-freshness reporter, report an unreadable workflow as exit 2 instead of a crash, and record the test suite's own exit scheme in the exit-code contract
 - 2026-09-27: record the shared exit-code contract (0 clean, 1 findings, 2 could not run) and the required-input preflight that gives exit 2 a meaning
 - 2026-09-27: record external-link extraction fix; answer the external-link scope item by measurement and record [lychee](https://github.com/lycheeverse/lychee) as evaluated and not adopted
 - 2026-09-23: baseline standards entry links and defer Layer-2 code-host machine checks

@@ -96,16 +96,27 @@ def render_report(results: list[LinkResult]) -> str:
 
 
 def main() -> int:
-    links = extract_external_links(README_PATH.read_text(encoding="utf-8"))
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        results = list(executor.map(check_link, links))
-    report = render_report(results)
+    incomplete = False
+    try:
+        readme = README_PATH.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        # An undecodable README leaves the report empty rather than short of
+        # findings, so the run is incomplete and not merely advisory. Reporting
+        # the links as zero would claim the list has no external links.
+        results: list[LinkResult] = []
+        note = f"\n\nCOULD NOT CHECK: {README_PATH}: {exc}"
+        incomplete = True
+    else:
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            results = list(executor.map(check_link, extract_external_links(readme)))
+        note = ""
+    report = render_report(results) + note
     print(report)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with Path(summary).open("a", encoding="utf-8") as handle:
             handle.write(report + "\n")
-    return 0
+    return 2 if incomplete else 0
 
 
 if __name__ == "__main__":
