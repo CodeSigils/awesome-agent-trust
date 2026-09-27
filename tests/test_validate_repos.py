@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Self
@@ -45,6 +47,13 @@ TRIAGE_SPEC = importlib.util.spec_from_file_location(
 assert TRIAGE_SPEC and TRIAGE_SPEC.loader
 triage_reporter = importlib.util.module_from_spec(TRIAGE_SPEC)
 TRIAGE_SPEC.loader.exec_module(triage_reporter)
+
+LINK_CHECK_SPEC = importlib.util.spec_from_file_location(
+    "check_markdown_links", SCRIPTS_DIR / "check-markdown-links.py"
+)
+assert LINK_CHECK_SPEC and LINK_CHECK_SPEC.loader
+link_checker = importlib.util.module_from_spec(LINK_CHECK_SPEC)
+LINK_CHECK_SPEC.loader.exec_module(link_checker)
 
 
 class ExtractReposTests(unittest.TestCase):
@@ -597,6 +606,102 @@ class EntryLinkFlagsTests(unittest.TestCase):
             validator.entry_flags_for([(1, "Repo", "https://github.com/org/repo")]),
             {},
         )
+
+
+class ExitCodeContractTests(unittest.TestCase):
+    """Lock 0 clean / 1 findings / 2 could not run.
+
+    Without a distinct 2, CPython's uncaught-exception exit code is 1, so a
+    crashed checker is reported to CI as a failed check. These tests are the
+    only thing preventing that collapse back into a binary.
+    """
+
+    def _run_link_checker(self, root: Path) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with patch.object(link_checker, "ROOT", root), redirect_stdout(out), redirect_stderr(err):
+            return link_checker.main(), out.getvalue(), err.getvalue()
+
+    def test_missing_required_input_is_reported_not_raised(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            present = Path(tmp) / "present.md"
+            present.write_text("# ok\n", encoding="utf-8")
+            missing = Path(tmp) / "absent.md"
+            self.assertIsNone(
+                validator.read_required_inputs((present,)),
+                "readable inputs must not report a problem",
+            )
+            message = validator.read_required_inputs((present, missing))
+            self.assertIsNotNone(message)
+            assert message is not None
+            self.assertIn("absent.md", message)
+
+    def test_non_utf8_required_input_is_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "latin1.md"
+            path.write_bytes("# caf\xe9\n".encode("latin-1"))
+            message = validator.read_required_inputs((path,))
+            self.assertIsNotNone(message, "undecodable input must be reported")
+            assert message is not None
+            self.assertIn("latin1.md", message)
+
+    def test_validate_repos_exits_2_when_input_unreadable(self) -> None:
+        out = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "README.md"
+            with (
+                patch.object(validator, "README_PATH", missing),
+                patch.object(sys, "argv", ["validate-repos.py"]),
+                redirect_stdout(out),
+            ):
+                self.assertEqual(validator.main(), 2)
+        self.assertIn("COULD NOT RUN", out.getvalue())
+        self.assertIn("README.md", out.getvalue())
+
+    def test_validate_repos_exits_2_for_baseline_audit(self) -> None:
+        out = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "advisory-baseline.json"
+            with patch.object(validator, "BASELINE_PATH", missing), redirect_stdout(out):
+                self.assertEqual(validator.run_baseline_audit(), 2)
+        self.assertIn("COULD NOT RUN", out.getvalue())
+
+    def test_link_checker_exits_0_when_clean(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.md").write_text("# a\n", encoding="utf-8")
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 0)
+        self.assertEqual(err, "")
+
+    def test_link_checker_exits_1_for_a_broken_link(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.md").write_text("[gone](missing.md)\n", encoding="utf-8")
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 1, "a broken link is a finding, not a run failure")
+        self.assertIn("missing.md", err)
+
+    def test_link_checker_exits_2_for_undecodable_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.md").write_text("# fine\n", encoding="utf-8")
+            (root / "b.md").write_bytes("# caf\xe9\n".encode("latin-1"))
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 2)
+        self.assertIn("COULD NOT CHECK", err)
+        self.assertIn("b.md", err)
+
+    def test_link_checker_prefers_2_over_1_and_still_reports_findings(self) -> None:
+        # An incomplete sweep must not be reported as a complete result, but the
+        # findings it did reach have to stay visible in the same output.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.md").write_text("[gone](missing.md)\n", encoding="utf-8")
+            (root / "b.md").write_bytes("# caf\xe9\n".encode("latin-1"))
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 2)
+        self.assertIn("missing.md", err)
+        self.assertIn("b.md", err)
 
 
 if __name__ == "__main__":

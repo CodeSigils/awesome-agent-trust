@@ -328,8 +328,27 @@ def compare_advisories(
     return current, current - baseline, baseline - current if complete else set()
 
 
+def read_required_inputs(paths: tuple[Path, ...]) -> str | None:
+    """Return a message naming the first required input that cannot be read.
+
+    Malformed content is a finding about a maintainer-owned file and is reported
+    by the loaders. An unreadable file is environmental, so it is separated here
+    to keep exit code 1 meaning "the check ran and failed".
+    """
+    for path in paths:
+        try:
+            path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            return f"{path}: {exc}"
+    return None
+
+
 def run_baseline_audit() -> int:
     """Print which LOW_STARS baseline entries have crossed the star threshold."""
+    unreadable = read_required_inputs((BASELINE_PATH,))
+    if unreadable:
+        print(f"COULD NOT RUN: {unreadable}")
+        return 2
     baseline, config_errors = load_advisory_baseline(BASELINE_PATH)
     if config_errors:
         for error in config_errors:
@@ -370,6 +389,10 @@ def run_baseline_audit() -> int:
 def main() -> int:
     if "--baseline-audit" in sys.argv[1:]:
         return run_baseline_audit()
+    unreadable = read_required_inputs((README_PATH, EXCEPTIONS_PATH, BASELINE_PATH))
+    if unreadable:
+        print(f"COULD NOT RUN: {unreadable}")
+        return 2
     repos = sorted(extract_repos(README_PATH))
     exceptions, config_errors = load_exceptions(EXCEPTIONS_PATH)
     baseline, baseline_errors = load_advisory_baseline(BASELINE_PATH)
