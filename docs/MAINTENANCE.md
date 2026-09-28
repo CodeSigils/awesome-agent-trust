@@ -215,6 +215,10 @@ is that a *finding* can never turn the weekly job red while a *crash* does,
 which is the reason not to add `continue-on-error` to the weekly workflow — that
 would hide exactly those crashes.
 
+`validate-repos.py --baseline-audit` is a check rather than an advisory report:
+it returns `2` when one or more repository API lookups fail, because the audit
+cannot safely report a complete baseline review in that state.
+
 When a single run both finds problems and cannot complete, `2` takes precedence
 over `1` so that a partial run is never presented as a complete failure set. The
 findings are still printed. Both gating scripts run as bare `run:` steps, so

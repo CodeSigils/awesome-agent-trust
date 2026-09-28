@@ -749,6 +749,29 @@ class ExitCodeContractTests(unittest.TestCase):
                 self.assertEqual(validator.run_baseline_audit(), 2)
         self.assertIn("COULD NOT RUN", out.getvalue())
 
+    def test_baseline_audit_exits_2_when_api_metadata_is_incomplete(self) -> None:
+        out = io.StringIO()
+        with (
+            patch.object(
+                validator,
+                "load_advisory_baseline",
+                return_value=({("LOW_STARS", "org/repo")}, []),
+            ),
+            patch.object(
+                validator,
+                "audit_low_stars",
+                return_value=(
+                    [],
+                    [],
+                    [],
+                    [{"repo": "org/repo", "detail": "network unavailable"}],
+                ),
+            ),
+            redirect_stdout(out),
+        ):
+            self.assertEqual(validator.run_baseline_audit(), 2)
+        self.assertIn("COULD NOT RUN", out.getvalue())
+
     def test_link_checker_exits_0_when_clean(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
