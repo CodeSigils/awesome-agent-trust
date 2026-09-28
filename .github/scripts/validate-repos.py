@@ -383,6 +383,9 @@ def run_baseline_audit() -> int:
         f"SUMMARY: {len(resolved)} resolved, {len(still_below)} still below, "
         f"{len(unavailable)} unavailable, {len(api_errors)} api error(s)"
     )
+    if api_errors:
+        print("COULD NOT RUN: API metadata is incomplete; re-check later.")
+        return 2
     return 0
 
 
