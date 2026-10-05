@@ -577,7 +577,9 @@ frequent maintenance merges.
 
 - **Squash-merge every PR** (`gh pr merge N --squash --delete-branch`). Main
   history stays one commit per PR, and `--delete-branch` keeps remote hygiene
-  automatic.
+  automatic — but only for a merge `gh` performs itself. Auto-merge is the
+  exception; see the `--auto` caveat below before treating a merged PR as
+  cleaned up.
 - **Start new branches from a synced main**: `git checkout main && git pull`
   first. Any merge to main instantly makes other open PR branches go stale.
 - **Merge related PRs oldest-first**, then refresh the later branch. A PR
@@ -609,6 +611,14 @@ frequent maintenance merges.
 - **Auto-merge is enabled** (`allow_auto_merge`, enabled 2026-09-23): merge
   with `gh pr merge N --auto --squash --delete-branch` so GitHub absorbs the
   behind-state and stale PRs self-merge once checks pass.
+- **`--auto` leaves the head branch on the remote.** `gh pr merge --auto`
+  returns as soon as auto-merge is queued, and `gh` cannot delete a branch that
+  still has an open PR — so `--delete-branch` is a silent no-op there. The
+  repository setting `delete_branch_on_merge` is `false`, so GitHub does not
+  delete it either, and the branch survives the merge. Once the PR reports
+  `MERGED`, prune it by hand with `git push origin --delete <branch>`. Leaving
+  it is not harmless: a squash merge rewrites history, so the branch is not a
+  copy of main and a later branch started from it carries a wrong base.
 - **External contributor PRs are review-first, not auto-merged.** `--auto` is
   for PRs the maintainer has already triaged.
 
@@ -629,6 +639,9 @@ As of 2026-09-23:
   `main` requires all three checks and applies branch protection to
   administrators; no approving-review requirement is configured for the solo
   maintainer.
+- Merge settings: `allow_auto_merge` is `true` and `delete_branch_on_merge` is
+  `false` (verified 2026-10-05), so an auto-merged PR leaves its branch behind
+  for manual pruning.
 - GitHub Actions are enabled with SHA pinning required; the allow-list permits
   only `actions/checkout`, `actions/setup-node`, and
   `gitleaks/gitleaks-action`.
@@ -646,6 +659,7 @@ As of 2026-09-23:
 Last reviewed: 2026-10-05.
 
 <!-- Revision history:
+- 2026-10-05: correct the merge rule — `--auto` leaves the PR head branch on the remote because `delete_branch_on_merge` is `false`, so a merged branch must be pruned with `git push origin --delete <branch>` instead of trusting `--delete-branch`
 - 2026-10-05: refresh a stale branch with `git push --force origin HEAD:<branch>` over the SSH remote instead of a token-bearing HTTPS URL, and reconcile the documented test count with the suite; 73 regression tests
 - 2026-10-05: lead `.env.example` with the `gh auth login` path instead of instructing maintainers to mint a personal access token
 - 2026-09-27: guard the external-link reporter's README read so an undecodable file exits 2 with `COULD NOT CHECK` instead of crashing or claiming zero links, and assert that the file inventory matches `.github/scripts/`; 68 regression tests
