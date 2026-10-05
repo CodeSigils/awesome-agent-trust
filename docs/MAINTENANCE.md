@@ -112,7 +112,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/repo-exceptions.json`](../.github/repo-exceptions.json)                               | The only place soft checks may be waived (maintainer-owned)      |
 | [`.github/ISSUE_TEMPLATE/project-proposal.yml`](../.github/ISSUE_TEMPLATE/project-proposal.yml) | Issue form for proposals and eligibility questions               |
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
-| [`.env.example`](../.env.example)                                                               | Documents the token variables local script runs use              |
+| [`.env.example`](../.env.example)                                                              | Documents the `gh auth login` path and local token overrides     |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
 | [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 68 regression tests for validation, API helpers, and reporting   |
 
