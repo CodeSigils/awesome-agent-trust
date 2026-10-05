@@ -114,7 +114,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                              | Documents the `gh auth login` path and local token overrides     |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 68 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 73 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -551,7 +551,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 68 tests
+Expected healthy output: `npm run lint` reports successful linting; all 73 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve` and exits 0; validate-repos prints `SUMMARY: 0 hard failure(s)`
 with advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry,
@@ -587,8 +587,8 @@ frequent maintenance merges.
   local recipe below covers fork PRs and cases where `--auto` was not set,
   since `gh pr update-branch` / the update-branch API are unavailable):
   `git -c credential.helper= fetch origin main && git rebase origin/main`,
-  then `git push --force https://oauth2:$(gh auth token)@github.com/CodeSigils/awesome-agent-trust.git HEAD:<branch>`.
-  Force-pushing your own feature branch is safe.
+  then `git push --force origin HEAD:<branch>`. Force-pushing your own
+  feature branch is safe.
 - **Use a full clone, not `--depth 1`.** Shallow clones have no
   remote-tracking refs, which is why `--force-with-lease` fails there.
 - **`npm run lint` fails on an unpushed branch** with `Awesome list must
@@ -643,9 +643,11 @@ As of 2026-09-23:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-09-27.
+Last reviewed: 2026-10-05.
 
 <!-- Revision history:
+- 2026-10-05: refresh a stale branch with `git push --force origin HEAD:<branch>` over the SSH remote instead of a token-bearing HTTPS URL, and reconcile the documented test count with the suite; 73 regression tests
+- 2026-10-05: lead `.env.example` with the `gh auth login` path instead of instructing maintainers to mint a personal access token
 - 2026-09-27: guard the external-link reporter's README read so an undecodable file exits 2 with `COULD NOT CHECK` instead of crashing or claiming zero links, and assert that the file inventory matches `.github/scripts/`; 68 regression tests
 - 2026-09-27: describe the roadmap as a dated decision record with the outstanding work in its `Future considerations` section, so this guide and the roadmap agree on what each file is for
 - 2026-09-27: cover the Action-freshness reporter with ten regression tests; report an unreadable workflow under `COULD NOT CHECK` and exit 2 rather than crashing; record the test suite's own exit scheme and the advisory scripts' crash-visibility in the exit-code contract; 65 regression tests
