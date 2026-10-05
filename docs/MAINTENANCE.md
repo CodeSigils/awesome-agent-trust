@@ -468,17 +468,22 @@ process for replacing them when needed.
    administrators. Run `verify-repository-settings.py` with an authenticated
    GitHub CLI session. Confirm whether direct pushes are permitted; the
    preferred path is a pull request.
-3. In **Settings → Actions → General**, confirm workflows are enabled,
+3. In **Settings → General**, confirm `delete_branch_on_merge` matches the
+   merge-settings state fact below and `allow_auto_merge` matches the git
+   workflow section. If a co-maintainer with write access is onboarded, note
+   that a merged PR of theirs loses its head branch to this setting, so keep
+   any long-lived work on a separate branch.
+4. In **Settings → Actions → General**, confirm workflows are enabled,
    scheduled workflows may run, SHA pinning is required, and only
    `actions/checkout`, `actions/setup-node`, and `gitleaks/gitleaks-action`
    are allowed. Update the policy before adding another action.
-4. Verify repository variables and secrets. CI uses the automatic
+5. Verify repository variables and secrets. CI uses the automatic
    `GITHUB_TOKEN`; `RUNNER_X86_64` is an optional runner-label variable. Local
    API checks may use `GH_TOKEN` or `GITHUB_TOKEN`, or the GitHub CLI token.
    Never put a personal token in the repository.
-5. Confirm Dependabot alerts and pull requests are enabled, and identify the
+6. Confirm Dependabot alerts and pull requests are enabled, and identify the
    person/team responsible for reviewing action and npm updates.
-6. Confirm the security-reporting destination in [SECURITY.md](../SECURITY.md)
+7. Confirm the security-reporting destination in [SECURITY.md](../SECURITY.md)
    and the person/team who triages reports. Do not investigate a suspected
    secret in a public issue; rotate/revoke it first.
 
@@ -577,9 +582,9 @@ frequent maintenance merges.
 
 - **Squash-merge every PR** (`gh pr merge N --squash --delete-branch`). Main
   history stays one commit per PR, and `--delete-branch` keeps remote hygiene
-  automatic — but only for a merge `gh` performs itself. Auto-merge is the
-  exception; see the `--auto` caveat below before treating a merged PR as
-  cleaned up.
+  automatic. The branch is also removed by the `delete_branch_on_merge`
+  setting, so both paths end with one branch on the remote — see the `--auto`
+  and fork caveats below for what the setting cannot reach.
 - **Start new branches from a synced main**: `git checkout main && git pull`
   first. Any merge to main instantly makes other open PR branches go stale.
 - **Merge related PRs oldest-first**, then refresh the later branch. A PR
@@ -611,14 +616,23 @@ frequent maintenance merges.
 - **Auto-merge is enabled** (`allow_auto_merge`, enabled 2026-09-23): merge
   with `gh pr merge N --auto --squash --delete-branch` so GitHub absorbs the
   behind-state and stale PRs self-merge once checks pass.
-- **`--auto` leaves the head branch on the remote.** `gh pr merge --auto`
-  returns as soon as auto-merge is queued, and `gh` cannot delete a branch that
-  still has an open PR — so `--delete-branch` is a silent no-op there. The
-  repository setting `delete_branch_on_merge` is `false`, so GitHub does not
-  delete it either, and the branch survives the merge. Once the PR reports
-  `MERGED`, prune it by hand with `git push origin --delete <branch>`. Leaving
-  it is not harmless: a squash merge rewrites history, so the branch is not a
-  copy of main and a later branch started from it carries a wrong base.
+- **`--auto` cannot delete the branch at merge-request time.**
+  `gh pr merge --auto` returns as soon as auto-merge is queued, and `gh` cannot
+  delete a branch that still has an open PR — so `--delete-branch` is a no-op
+  there. Deletion then happens later, when GitHub performs the queued merge and
+  the `delete_branch_on_merge` setting (enabled 2026-10-05) fires. Expect the
+  branch to still be present immediately after `MERGED` and gone a moment
+  later; confirm with `git ls-remote --heads origin` rather than assuming a
+  failed delete. Prune by hand with `git push origin --delete <branch>` only if
+  it is still there.
+- **A fork PR's branch is never touched.** `contributing.md` asks contributors
+  to fork, so an external submission's head branch lives in the contributor's
+  repository. Neither `--delete-branch` nor `delete_branch_on_merge` reaches
+  across a fork, and the maintainer has no push access to delete it. Nothing to
+  clean up on this side, and the contributor keeps their own history. Leaving
+  a same-repo branch behind is not harmless in the same way a fork branch is:
+  a squash merge rewrites history, so a merged branch is not a copy of main
+  and a later branch started from it carries a wrong base.
 - **External contributor PRs are review-first, not auto-merged.** `--auto` is
   for PRs the maintainer has already triaged.
 
@@ -640,8 +654,8 @@ As of 2026-09-23:
   administrators; no approving-review requirement is configured for the solo
   maintainer.
 - Merge settings: `allow_auto_merge` is `true` and `delete_branch_on_merge` is
-  `false` (verified 2026-10-05), so an auto-merged PR leaves its branch behind
-  for manual pruning.
+  `true` (enabled 2026-10-05), so a merged same-repo head branch is removed
+  without maintainer action. Fork PR branches are unaffected by design.
 - GitHub Actions are enabled with SHA pinning required; the allow-list permits
   only `actions/checkout`, `actions/setup-node`, and
   `gitleaks/gitleaks-action`.
@@ -659,7 +673,8 @@ As of 2026-09-23:
 Last reviewed: 2026-10-05.
 
 <!-- Revision history:
-- 2026-10-05: correct the merge rule — `--auto` leaves the PR head branch on the remote because `delete_branch_on_merge` is `false`, so a merged branch must be pruned with `git push origin --delete <branch>` instead of trusting `--delete-branch`
+- 2026-10-05: enable `delete_branch_on_merge`, replace the manual-prune rule with the setting, and state that a fork PR's branch is never deleted because it lives in the contributor's repository
+- 2026-10-05: correct the merge rule — `--auto` cannot delete the head branch at merge-request time because the PR is still open, so the merged branch must be pruned by hand instead of trusting `--delete-branch`
 - 2026-10-05: refresh a stale branch with `git push --force origin HEAD:<branch>` over the SSH remote instead of a token-bearing HTTPS URL, and reconcile the documented test count with the suite; 73 regression tests
 - 2026-10-05: lead `.env.example` with the `gh auth login` path instead of instructing maintainers to mint a personal access token
 - 2026-09-27: guard the external-link reporter's README read so an undecodable file exits 2 with `COULD NOT CHECK` instead of crashing or claiming zero links, and assert that the file inventory matches `.github/scripts/`; 68 regression tests
