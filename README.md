@@ -173,6 +173,7 @@ Immutable audit logs, hash-chained event records, session replay, and observabil
 - [deconvolute](https://github.com/deconvolute-labs/deconvolute) - Policy-as-code enforcement and observability for MCP tool calls. Cryptographic integrity chains.
 - [forgesight](https://github.com/Scaffoldic/forgesight) - Vendor-neutral, OpenTelemetry-first telemetry for AI agents. Traces, cost, budgets, audit trails.
 - [notmemory](https://github.com/notmemory/notmemory) - Tamper-proof agent memory with audit trails, rollback, GDPR tombstoning, and semantic search.
+- [OpenClaw Monitor](https://github.com/flik2002/openclaw-monitor) - Self-hosted monitoring dashboard for OpenClaw AI agents that reads the local session store and gateway API to report per-model token usage, sessions and 7-day trends, giving agent operators an independent record of what their agents consumed.
 - [soma](https://github.com/radotsvetkov/soma) - Local-first AI agent governance with verifiable, tamper-evident audit trails.
 - [SoulGuard](https://github.com/saluca-labs/soulguard) - Open trust layer for AI-agent memory. Tamper-evident memory and cryptographic agent identity.
 - [trailing](https://github.com/trailingai/trailing) - Immutable audit trails for AI agents. Compliance-ready logging for Claude Code, Codex, Cursor, CrewAI.
