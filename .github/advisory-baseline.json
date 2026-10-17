@@ -1,5 +1,5 @@
 {
-  "reviewed": "2026-09-23",
+  "reviewed": "2026-10-17",
   "advisories": {
     "INACTIVE": [
       "go-a2a/a2a-go", "themanojdesai/python-a2a"
@@ -21,7 +21,7 @@
       "opena2a-org/ai-trust", "originlayer/agent-identity-protocol",
       "priyansh-x/agent-passport", "radotsvetkov/soma", "rioX432/agent-witness",
       "route-ans/route-ans", "saluca-labs/soulguard", "selfradiance/actionwarrant",
-      "smouj/agentdnai", "trailingai/trailing",
+      "smouj/agentdnai",
       "veldtlabs/veldt-kya", "vkobel/confidential-computing-expert-skill",
       "yourclaw/clawguard", "yylo-dev/yylo-benchmark"
     ],
