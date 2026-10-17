@@ -283,6 +283,19 @@ See [docs/MAINTENANCE.md](docs/MAINTENANCE.md) for how this repository is
 automated — every workflow, script, and advisory file, what it does and how it
 works, plus the maintenance commands.
 
+The validation workflow runs the first two checks below; the weekly or manual
+freshness workflow runs the validator and the three advisory reports. The live
+GitHub checks benefit from authentication; see the maintenance guide for setup,
+interpretation, and the complete gate.
+
+```bash
+python3 .github/scripts/check-markdown-links.py
+python3 .github/scripts/validate-repos.py
+python3 .github/scripts/report-action-freshness.py
+python3 .github/scripts/report-external-links.py
+python3 .github/scripts/report-advisory-triage.py
+```
+
 See [docs/ROADMAP.md](docs/ROADMAP.md) for planned maintenance work and the
 review cadence for the list and its validation tooling.
 
