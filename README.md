@@ -227,6 +227,7 @@ affiliation unless the entry explicitly says so.
 
 - [Agentic AI Foundation](https://github.com/api-evangelist/agentic-ai-foundation) - Community repository tracking the Agentic AI Foundation ecosystem.
 - [CapiscIO RFCs](https://github.com/capiscio/capiscio-rfcs) - Request for Comments for CapiscIO protocols and standards. AGCP, trust policies, agent identity.
+- [universal-trust-adapter](https://github.com/alicelabs-llc/universal-trust-adapter) - Published protocol draft (RFC-ATC-v3) and UTS-v1 specification for interoperating between agent trust credential formats through a canonical Universal Trust Schema (UTS), with Ed25519-signed Agent Trust Cards (ATC/1.0) and a 36-vector conformance corpus. Spec, vectors, conformance tooling, and the monorepo/adapters reference-implementation packages are dual-licensed (MIT OR Apache-2.0); the Sentinel, Interceptor, and Trust-Engine layers are source-available (AL-1.0) under `proprietary/`.
 
 ---
 
