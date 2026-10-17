@@ -424,7 +424,7 @@ and bumps `reviewed`.
 Structure: `advisories` keyed by soft-check name (`INACTIVE`, `LOW_STARS`,
 `NO_LICENSE`, `UNVALIDATED_LINK`), each a list of item strings (for GitHub
 entries the `owner/repo` pair; for non-GitHub entry links, the display name
-and host). As of 2026-09-23 it holds 2 INACTIVE, 40 LOW_STARS, 19
+and host). As of 2026-10-17 it holds 2 INACTIVE, 39 LOW_STARS, 19
 NO_LICENSE, and 4 UNVALIDATED_LINK entries.
 
 ### repo-exceptions.json
@@ -647,7 +647,7 @@ adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
 
 ## State facts
 
-As of 2026-09-23:
+As of 2026-10-17:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
@@ -662,7 +662,7 @@ As of 2026-09-23:
 - `dependency-freshness.yml` reports action SHA drift, advisory drift,
   external README-link health, and exception triage every Monday;
   `dependabot.yml` opens weekly update PRs.
-- Validator baseline: 2 INACTIVE, 40 LOW_STARS, 19 NO_LICENSE, and 4
+- Validator baseline: 2 INACTIVE, 39 LOW_STARS, 19 NO_LICENSE, and 4
   UNVALIDATED_LINK entries;
   the single registered exception waives two soft flags. Live repository state
   is refreshed by the scheduled validator run.
@@ -670,9 +670,10 @@ As of 2026-09-23:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-05.
+Last reviewed: 2026-10-17.
 
 <!-- Revision history:
+- 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404) from the README, clear its LOW_STARS baseline row, and reconcile the validator baseline to 39 LOW_STARS entries
 - 2026-10-05: enable `delete_branch_on_merge`, replace the manual-prune rule with the setting, and state that a fork PR's branch is never deleted because it lives in the contributor's repository
 - 2026-10-05: correct the merge rule — `--auto` cannot delete the head branch at merge-request time because the PR is still open, so the merged branch must be pruned by hand instead of trusting `--delete-branch`
 - 2026-10-05: refresh a stale branch with `git push --force origin HEAD:<branch>` over the SSH remote instead of a token-bearing HTTPS URL, and reconcile the documented test count with the suite; 73 regression tests

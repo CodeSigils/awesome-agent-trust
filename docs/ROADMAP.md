@@ -209,9 +209,10 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
 
-Last reviewed: 2026-09-27.
+Last reviewed: 2026-10-17.
 
 <!-- Revision history:
+- 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404), clear its LOW_STARS baseline row, and reconcile the maintenance guide's advisory counts
 - 2026-09-27: rename `Open Items` to `Closed Items` now that it holds no pending work, record why `report-advisory-triage.py` stays uncovered on purpose, and guard the external-link reporter's README read as exit 2
 - 2026-09-27: make the roadmap a dated record rather than a queue — reframe the header and the Directive around retaining completed entries, refresh the stale `Current Automation State` anchors, and scope the untested `verify-repository-settings.py` entry point as deferred work
 - 2026-09-27: cover the Action-freshness reporter, report an unreadable workflow as exit 2 instead of a crash, and record the test suite's own exit scheme in the exit-code contract
