@@ -152,6 +152,23 @@ into planned work means starting a new entry here, not reviving an old one.
   invited when useful rather than demanded. Exceptions remain the mechanism
   for genuine policy departures such as licensing or standards-only
   destinations.
+- 2026-10-20: review Dependabot's current official documentation against this
+  repository's setup and expand MAINTENANCE.md's dependabot section
+  accordingly. Version updates stay weekly and ungrouped — one npm devDep and
+  low Actions churn do not justify grouping — while repository-level security
+  updates are recorded as a separate enabled system with their own fixed
+  pull-request limit, and the alert and pull-request lifecycle rules now
+  govern the weekly review. Observed gap retained for watching: security
+  updates are enabled but have never opened a pull request here, so the
+  `http-cache-semantics` advisory was fixed manually.
+- 2026-10-20: keep `ubuntu-latest` instead of pinning during GitHub's
+  24.04-to-26.04 `latest` migration (rolling out 2026-10-19 to 2026-11-19).
+  Toolchain versions are pinned independently — `setup-node` is SHA-pinned
+  with an explicit Node 24 and gitleaks runs as a pinned action — so only the
+  image floats, and the `RUNNER_X86_64` repository variable remains an
+  instant fallback to `ubuntu-24.04` without a workflow edit. Reassess only
+  if GitHub announces ubuntu-24.04 deprecation, which its support policy ties
+  to the next Ubuntu GA release; no such announcement existed on 2026-10-20.
 
 ## Future considerations
 
@@ -215,7 +232,7 @@ a current compromise or CI failure:
 
 | Cadence                      | Action                                                                                                                                                                                                                                                                                                                      |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Weekly                       | `dependency-freshness.yml` run — review validator drift, Action freshness, external-link health, and exception-triage summaries                                                                                                                                                                                            |
+| Weekly                       | `dependency-freshness.yml` run — review validator drift, Action freshness, external-link health, exception-triage summaries, and open Dependabot pull requests                                                                                                                                                              |
 | Monthly                      | Triage new and overdue advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                             |
 | Monthly                      | Run `verify-repository-settings.py` from an authenticated maintainer session; investigate any reported branch-protection drift                                                                                                                                                                                               |
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
@@ -224,6 +241,7 @@ a current compromise or CI failure:
 Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: record the Dependabot documentation review (MAINTENANCE section expanded, security-update pull-request gap noted) and the ubuntu-latest 26.04 migration decision — stay on latest with RUNNER_X86_64 as the pin fallback; add open Dependabot pull requests to the weekly cadence row
 - 2026-10-20: make star counts advisory-only in the contributor policy, reword the advisory-signal cadence row accordingly, and add the README mixed-license disclaimer clarification
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404), clear its LOW_STARS baseline row, and reconcile the maintenance guide's advisory counts
 - 2026-09-27: rename `Open Items` to `Closed Items` now that it holds no pending work, record why `report-advisory-triage.py` stays uncovered on purpose, and guard the external-link reporter's README read as exit 2

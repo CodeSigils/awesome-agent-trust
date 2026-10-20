@@ -179,9 +179,36 @@ a required PR check.
 
 ### dependabot.yml — dependency updates
 
-Opens weekly PRs for `github-actions` and `npm` ecosystems. No automerge is
-configured; every update still passes the three `validate.yml` jobs before
-merge.
+Two distinct GitHub systems produce dependency pull requests, and the
+configuration file only governs the first:
+
+- **Version updates** — `.github/dependabot.yml` checks the `github-actions`
+  and `npm` ecosystems weekly. Where the file is silent, GitHub's documented
+  defaults apply: at most five open version-update pull requests per
+  ecosystem, and a three-day cooldown that defers brand-new releases.
+- **Security updates** — enabled at the repository level, not in the file.
+  Advisories trigger them rather than the weekly schedule, they always target
+  the default branch, and they carry a separate fixed limit of ten open pull
+  requests that the file cannot change.
+
+No automerge is configured; every update still passes the three `validate.yml`
+jobs before merge. Three lifecycle rules shape the review routine:
+
+- Merging a security-update pull request marks its Dependabot alert resolved.
+- A pull request whose update has already landed on `main` is closed
+  automatically; nudge a stuck one with `@dependabot recreate` or
+  `@dependabot rebase`.
+- Dependabot stops rebasing an unmerged pull request after 30 days, so each
+  proposal needs a merge, close, or supersede decision within that window.
+  Review open dependency pull requests in the weekly Monday pass.
+
+As of 2026-10, security updates are enabled but no security-update pull
+request has opened; the `http-cache-semantics` advisory was fixed manually. A
+security alert without a pull request is a prompt to check, not evidence that
+no fix is needed.
+
+Every configuration key and default is documented in GitHub's Dependabot
+options reference.
 
 ## Scripts reference
 
@@ -675,6 +702,7 @@ As of 2026-10-17:
 Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: expand the dependabot section — separate version updates from repository-level security updates, record the documented PR limits and default cooldown, and add the alert/PR lifecycle rules and 30-day rebase window that govern the weekly review
 - 2026-10-20: reword the review-cadence reference to match the advisory-only star policy — supporting evidence on PRs with advisory signals is invited but optional
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404) from the README, clear its LOW_STARS baseline row, and reconcile the validator baseline to 39 LOW_STARS entries
 - 2026-10-05: enable `delete_branch_on_merge`, replace the manual-prune rule with the setting, and state that a fork PR's branch is never deleted because it lives in the contributor's repository
