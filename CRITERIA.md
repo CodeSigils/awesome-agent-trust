@@ -35,7 +35,7 @@ Projects listed on this index are checked by the repo validation script
 | Repository exists          | GitHub API returns 200                                                    | **Hard failure**                                                               |
 | Not archived               | `archived: false` in API response                                         | **Hard failure**                                                               |
 | Has an open-source license | GitHub detects a license, or a documented specification exception applies | Soft flag for existing entries; normally required for new software submissions |
-| Minimum adoption           | ≥5 stars                                                                  | Advisory observation only; never blocks inclusion or substitutes for evidence  |
+| Minimum adoption           | ≥5 stars                                                                  | Advisory observation only; never blocks inclusion or replaces reviewer judgment |
 | Recent activity            | Repository push within the last 12 months                                 | Advisory soft flag; `pushed_at` is only a maintenance proxy                    |
 | Meaningful description     | ≥15 characters describing what it does                                    | Soft flag                                                                      |
 | List entry format          | `- [Name](url) - Description` (must include description after link)       | Soft flag                                                                      |
@@ -53,12 +53,12 @@ early-stage, dormant, underspecified, or missing machine-detectable licensing.
 Human review may retain a project when stronger evidence exists, such as a
 recognized specification process, independent interoperability verification,
 documented adoption, or foundation governance. Stars alone never establish
-quality or trustworthiness. Star counts are metadata for research and
-observation only — they never gate inclusion. Contributors proposing a
-sub-5-star repository
-should document adoption evidence and request a
-`.github/repo-exceptions.json` entry rather than accepting the advisory
-flag. See `contributing.md` for details.
+quality or trustworthiness. Star counts are advisory discovery metadata
+only — a sub-five-star repository is a secondary advisory signal for
+reviewers, not an eligibility rule or an exception request. Contributors
+may provide adoption, governance, interoperability, or maintenance
+evidence when useful to help reviewers assess an entry. See
+`contributing.md` for details.
 
 Entries that link a recognized non-GitHub code host or another external
 destination are surfaced as advisory soft flags, so the destination is

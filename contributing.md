@@ -40,10 +40,11 @@ Before opening a pull request, confirm each item:
 - [ ] The repository is public and, for software, has an open-source license
 - [ ] The project is maintained, or the submission explains why an inactive
       specification remains authoritative
-- [ ] If the repository has fewer than **5 stars**, the pull request provides
-      stronger evidence such as independent verification, documented adoption,
-      foundation governance, or a recognized standards process, and requests a
-      `.github/repo-exceptions.json` entry with that evidence
+- [ ] If the repository has fewer than **5 stars**, the pull request may
+      provide supporting evidence such as independent verification, documented
+      adoption, foundation governance, or a recognized standards process.
+      This is a secondary advisory signal for reviewers, not a requirement,
+      and it does not require an exception request
 - [ ] The description is a single sentence explaining what the project
       does — not marketing language
 - [ ] The entry is in the **correct category** (see CRITERIA.md for
@@ -67,19 +68,19 @@ following are positive quality signals, not interchangeable automatic gates:
 3. Is a Linux Foundation or similarly governed open-source project
 4. Has documented real-world usage or adoption
 
-Star counts are discovery metadata for research and observation, never a
-gate: they do not block inclusion and are not proof of quality. A sub-5-star
-project
-may be accepted when its submission presents stronger, independently
-checkable evidence — package-registry downloads, an active specification
-process, foundation governance, or documented real-world adoption. The
-exception must be narrow and documented in `.github/repo-exceptions.json`.
-The separate advisory baseline only reduces repeated CI noise; it does not
-grandfather a project or override these criteria.
+Star counts are advisory discovery metadata only. They do not determine
+eligibility or require an exception: a sub-five-star repository is a
+secondary advisory signal for reviewers, not a gate. Contributors may
+provide adoption, governance, interoperability, or maintenance evidence —
+such as package-registry downloads, an active specification process,
+foundation governance, or documented real-world adoption — when useful to
+help reviewers assess an entry. The separate advisory baseline only
+reduces repeated CI noise; it does not grandfather a project or override
+these criteria.
 
-New advisory signals do not automatically reject a submission. Explain the
-signal in the pull request and provide stronger evidence for inclusion; the
-maintainer will decide whether the project belongs. Do not edit
+New advisory signals do not automatically reject a submission. Address the
+signal in the pull request when useful context exists; the maintainer will
+decide whether the project belongs. Do not edit
 `.github/advisory-baseline.json` or `.github/repo-exceptions.json` unless a
 maintainer explicitly requests that change. Those files record maintainer
 review state, not contributor assertions.
