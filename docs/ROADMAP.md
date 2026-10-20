@@ -140,6 +140,18 @@ into planned work means starting a new entry here, not reviving an old one.
   file inventory matches `.github/scripts/`, so the inventory cannot drift out of
   sync silently. `report-advisory-triage.py` stays uncovered on purpose: its
   failure surface is `load_json` and `render_report`, both already tested.
+- 2026-10-20: add the mixed-license clarification to the README adoption
+  disclaimer — some entries cover a public protocol or open component within
+  a mixed-license project, and readers should check the linked project's
+  licensing materials before adopting or reusing any implementation.
+- 2026-10-20: make star counts advisory-only in the contributor policy. A
+  sub-five-star repository is a secondary advisory signal for reviewers, not
+  an eligibility gate or an exception trigger: contributing.md no longer
+  requires a `.github/repo-exceptions.json` request for sub-5-star
+  submissions, CRITERIA.md states the same, and supporting evidence is
+  invited when useful rather than demanded. Exceptions remain the mechanism
+  for genuine policy departures such as licensing or standards-only
+  destinations.
 
 ## Future considerations
 
@@ -207,11 +219,12 @@ a current compromise or CI failure:
 | Monthly                      | Triage new and overdue advisories from reported runs: resolve to baseline, exception, or removal                                                                                                                                                                                                                             |
 | Monthly                      | Run `verify-repository-settings.py` from an authenticated maintainer session; investigate any reported branch-protection drift                                                                                                                                                                                               |
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
-| On PRs with advisory signals | Apply the adoption-evidence rule in contributing.md; ask the contributor for package-registry download data when relevant                                                                                                                                                                                                   |
+| On PRs with advisory signals | Advisory signals are non-blocking; invite supporting evidence from the contributor when useful (for example package-registry downloads) under the advisory-only star policy in contributing.md                                                                                                                                       |
 
-Last reviewed: 2026-10-17.
+Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: make star counts advisory-only in the contributor policy, reword the advisory-signal cadence row accordingly, and add the README mixed-license disclaimer clarification
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404), clear its LOW_STARS baseline row, and reconcile the maintenance guide's advisory counts
 - 2026-09-27: rename `Open Items` to `Closed Items` now that it holds no pending work, record why `report-advisory-triage.py` stays uncovered on purpose, and guard the external-link reporter's README read as exit 2
 - 2026-09-27: make the roadmap a dated record rather than a queue — reframe the header and the Directive around retaining completed entries, refresh the stale `Current Automation State` anchors, and scope the untested `verify-repository-settings.py` entry point as deferred work

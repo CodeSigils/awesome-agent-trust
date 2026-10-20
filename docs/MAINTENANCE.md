@@ -641,7 +641,9 @@ frequent maintenance merges.
 The [Review Cadence](ROADMAP.md#review-cadence) table in ROADMAP.md is the
 schedule: weekly review of the Monday summary, monthly triage of new and
 overdue advisories, quarterly `--baseline-audit` plus expiry re-checks, and the
-adoption-evidence rule on PRs with advisory signals. The `reviewed` date in
+advisory-evidence guidance on PRs with advisory signals, where supporting
+evidence is invited but never required (star counts are advisory-only). The
+`reviewed` date in
 `advisory-baseline.json` and the `review_after` dates in
 `repo-exceptions.json` are the tick marks for that cadence.
 
@@ -670,9 +672,10 @@ As of 2026-10-17:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-17.
+Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: reword the review-cadence reference to match the advisory-only star policy — supporting evidence on PRs with advisory signals is invited but optional
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404) from the README, clear its LOW_STARS baseline row, and reconcile the validator baseline to 39 LOW_STARS entries
 - 2026-10-05: enable `delete_branch_on_merge`, replace the manual-prune rule with the setting, and state that a fork PR's branch is never deleted because it lives in the contributor's repository
 - 2026-10-05: correct the merge rule — `--auto` cannot delete the head branch at merge-request time because the PR is still open, so the merged branch must be pruned by hand instead of trusting `--delete-branch`
