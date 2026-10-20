@@ -20,8 +20,9 @@
 > adopting or reusing any implementation.
 
 > **For agents working on this repository:** read
-> `docs/MAINTENANCE.md` first. It documents the validation gates, advisory
-> state files, and branch/PR hygiene that apply to every change in this repo.
+> [`AGENTS.md`](AGENTS.md) first. It covers the protected-`main` PR-only
+> workflow, the verification gate, and where the operational docs live;
+> `docs/MAINTENANCE.md` remains the authoritative operations manual.
 
 This project follows the structural conventions of an Awesome list while
 intentionally covering an emerging ecosystem more broadly than a traditional
