@@ -15,6 +15,9 @@
 > adoption recommendation or security endorsement. Before using a listed
 > approach, inspect its first-party documentation, current maintenance state,
 > license, threat model, and fit for the project's observed problem.
+> Some entries may cover a public protocol or open component within a
+> mixed-license project. Read the linked project's licensing materials before
+> adopting or reusing any implementation.
 
 > **For agents working on this repository:** read
 > `docs/MAINTENANCE.md` first. It documents the validation gates, advisory
