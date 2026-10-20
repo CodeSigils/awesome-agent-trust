@@ -514,6 +514,31 @@ process for replacing them when needed.
    and the person/team who triages reports. Do not investigate a suspected
    secret in a public issue; rotate/revoke it first.
 
+### Code security settings
+
+Repository-level code-security features, enabled on 2026-10-20. None of them
+add required status checks or interact with branch protection:
+
+- **Private vulnerability reporting** — enabled, with GitHub's default
+  report form and daily limit; no custom schema or CWE requirement.
+  [SECURITY.md](../SECURITY.md) remains the public reporting policy, and
+  private reports arrive in the repository's Security tab for maintainer
+  triage.
+- **Code scanning (CodeQL default setup)** — enabled for the GitHub Actions
+  and Python languages with the default query suite, running on pushes and
+  pull requests to `main` and on a weekly schedule. Alerts appear in the
+  Security tab; no workflow file was added and no new status check is
+  required for merge.
+- **Malware alerts** — enabled; GitHub alerts the maintainer when a
+  dependency in the dependency graph is identified as containing malware.
+- **Secret scanning and push protection** — both enabled, with non-provider
+  patterns and validity checks off. Push protection blocks pushes
+  containing supported secrets at push time; the `secret-scan` gitleaks job
+  remains the independent second layer on every push and pull request.
+- **Dependabot security updates** — enabled at the repository level; the
+  pull-request lifecycle rules are in the
+  [dependabot section](#dependabotyml--dependency-updates) above.
+
 ### First-day verification
 
 From a fresh clone, run the commands in the [maintenance commands](#maintenance-commands)
@@ -676,7 +701,7 @@ evidence is invited but never required (star counts are advisory-only). The
 
 ## State facts
 
-As of 2026-10-17:
+As of 2026-10-20:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
@@ -695,6 +720,11 @@ As of 2026-10-17:
   UNVALIDATED_LINK entries;
   the single registered exception waives two soft flags. Live repository state
   is refreshed by the scheduled validator run.
+- Code security (enabled 2026-10-20): private vulnerability reporting, CodeQL
+  default setup (GitHub Actions + Python, alerts only), malware alerts,
+  secret scanning, and push protection are on; non-provider patterns and
+  validity checks are off. See the
+  [code security settings](#code-security-settings) section.
 - Previously planned work is complete; the roadmap tracks remaining deferred
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
@@ -702,6 +732,7 @@ As of 2026-10-17:
 Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: document the code-security posture — private vulnerability reporting, CodeQL default setup (GitHub Actions + Python, alerts only), malware alerts, secret scanning, and push protection — and add a state-facts bullet; none of these settings add required checks
 - 2026-10-20: expand the dependabot section — separate version updates from repository-level security updates, record the documented PR limits and default cooldown, and add the alert/PR lifecycle rules and 30-day rebase window that govern the weekly review
 - 2026-10-20: reword the review-cadence reference to match the advisory-only star policy — supporting evidence on PRs with advisory signals is invited but optional
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404) from the README, clear its LOW_STARS baseline row, and reconcile the validator baseline to 39 LOW_STARS entries
