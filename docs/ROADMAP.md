@@ -169,6 +169,14 @@ into planned work means starting a new entry here, not reviving an old one.
   instant fallback to `ubuntu-24.04` without a workflow edit. Reassess only
   if GitHub announces ubuntu-24.04 deprecation, which its support policy ties
   to the next Ubuntu GA release; no such announcement existed on 2026-10-20.
+- 2026-10-20: enable GitHub's repository-level code-security features —
+  private vulnerability reporting, CodeQL default setup for GitHub Actions
+  and Python (default suite; pushes, pull requests, and a weekly schedule;
+  alerts only, no new required check), and malware alerts — and confirm
+  secret scanning with push protection already on. MAINTENANCE.md records
+  the resulting posture in its code security settings section. These are
+  platform settings rather than workflow changes, so branch protection and
+  the required-check contract are untouched.
 
 ## Future considerations
 
@@ -217,8 +225,10 @@ formally promoting an item into planned work.
 These security improvements are also deferred considerations, not evidence of
 a current compromise or CI failure:
 
-- **Static analysis.** Reassess CodeQL, Ruff, or another focused analyzer if
-  the standard-library Python scripts grow beyond their current scope.
+- **Static analysis.** CodeQL default setup now covers GitHub Actions and
+  Python with alerts only (enabled 2026-10-20); consider Ruff or another
+  focused analyzer if the standard-library Python scripts grow beyond
+  their current scope.
 - **Settings verification.** Consider a periodic or policy-backed check for
   branch protection, Actions restrictions, required checks, and permissions.
 - **Scope and external destinations.** Keep the non-endorsement boundary
@@ -241,6 +251,7 @@ a current compromise or CI failure:
 Last reviewed: 2026-10-20.
 
 <!-- Revision history:
+- 2026-10-20: enable private vulnerability reporting, CodeQL default setup (GitHub Actions + Python, alerts only), and malware alerts, confirm secret scanning with push protection, record the posture in MAINTENANCE.md, and update the static-analysis consideration to reflect that CodeQL is now active
 - 2026-10-20: record the Dependabot documentation review (MAINTENANCE section expanded, security-update pull-request gap noted) and the ubuntu-latest 26.04 migration decision — stay on latest with RUNNER_X86_64 as the pin fallback; add open Dependabot pull requests to the weekly cadence row
 - 2026-10-20: make star counts advisory-only in the contributor policy, reword the advisory-signal cadence row accordingly, and add the README mixed-license disclaimer clarification
 - 2026-10-17: remove the deleted trailingai/trailing entry (HTTP 404), clear its LOW_STARS baseline row, and reconcile the maintenance guide's advisory counts
