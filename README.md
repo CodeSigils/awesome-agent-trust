@@ -134,6 +134,7 @@ Fine-grained authorization, delegation, and permission systems for agent tool ex
 
 Public registries, trust scoring, signed receipts, and verifiable attestation.
 
+- [agent-account-index](https://github.com/mycelium-being/agent-account-index) - Dataset and stdio MCP server recording, per service, whether its own terms let a non-human hold an account and the quoted clause that says so.
 - [agentattest](https://github.com/AuroraAeon/agentattest) - Verifiable provenance for AI coding agents. Binds agent runs, diffs, PRs, artifacts, and approvals into attestations.
 - [AgentGuard](https://github.com/GoPlusSecurity/agentguard) - Security guard for AI agents. Blocks malicious skills, prevents data leaks, protects secrets. 24 detection rules.
 - [agentregistry](https://github.com/agentregistry-dev/agentregistry) - Centralized, curated registry for AI agent skills.
