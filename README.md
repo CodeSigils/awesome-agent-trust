@@ -181,6 +181,7 @@ Immutable audit logs, hash-chained event records, session replay, and observabil
 - [SoulGuard](https://github.com/saluca-labs/soulguard) - Open trust layer for AI-agent memory. Tamper-evident memory and cryptographic agent identity.
 - [trishula-agent-telemetry](https://github.com/TrishulaSoftware/trishula-agent-telemetry) - Deterministic agent observability. Merkle-chained audit trails. Anomaly detection. Zero dependencies.
 - [vaara](https://github.com/vaaraio/vaara) - Open-source evidence layer for AI governance. Gates every agent tool call against your policies with verifiable receipts.
+- [x402-receipts](https://github.com/predgeAI/x402-receipts) - Specification, TypeScript library and test vectors for ed25519-signed receipts of x402 agent payments over RFC 8785 canonical JSON, verifiable offline.
 - [YYLO Benchmark](https://github.com/yylo-dev/yylo-benchmark) - Benchmark harness that runs every coding-agent attempt in a dedicated fresh repository and retains one hash-verified evidence chain linking the plan, attempt, workspace receipt, post-execution repository manifest, terminal, and evaluation IDs, with recovery, doctor, and report failing closed unless the complete chain verifies.
 
 ---
