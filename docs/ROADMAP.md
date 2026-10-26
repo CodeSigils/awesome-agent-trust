@@ -177,6 +177,10 @@ into planned work means starting a new entry here, not reviving an old one.
   the resulting posture in its code security settings section. These are
   platform settings rather than workflow changes, so branch protection and
   the required-check contract are untouched.
+- 2026-10-26: remove `arian-gogani/nobulex` after GitHub returned HTTP 451
+  (`Repository access blocked`, DMCA) to authenticated API requests. The
+  validator correctly fails closed on unavailable repositories, so retaining
+  the entry would prevent complete validation of unrelated pull requests.
 
 ## Future considerations
 
@@ -248,9 +252,12 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Advisory signals are non-blocking; invite supporting evidence from the contributor when useful (for example package-registry downloads) under the advisory-only star policy in contributing.md                                                                                                                                       |
 
-Last reviewed: 2026-10-20.
+Last reviewed: 2026-10-26.
 
 <!-- Revision history:
+- 2026-10-26: remove the DMCA-blocked `arian-gogani/nobulex` entry so the
+  required repository validator can complete; record the evidence and
+  decision in Closed Items
 - 2026-10-20: enable private vulnerability reporting, CodeQL default setup (GitHub Actions + Python, alerts only), and malware alerts, confirm secret scanning with push protection, record the posture in MAINTENANCE.md, and update the static-analysis consideration to reflect that CodeQL is now active
 - 2026-10-20: record the Dependabot documentation review (MAINTENANCE section expanded, security-update pull-request gap noted) and the ubuntu-latest 26.04 migration decision — stay on latest with RUNNER_X86_64 as the pin fallback; add open Dependabot pull requests to the weekly cadence row
 - 2026-10-20: make star counts advisory-only in the contributor policy, reword the advisory-signal cadence row accordingly, and add the README mixed-license disclaimer clarification

@@ -161,7 +161,6 @@ Credit-score-style reputation systems and trust scoring for agents.
 - [AgenticTrust](https://github.com/Dylan-Xu410/AgenticTrust) - Decentralized reputation, scoring, and discovery infrastructure for AI agents.
 - [djd-agent-score](https://github.com/jacobsd32-cpu/djd-agent-score) - Reputation scoring for AI agent wallets on Base.
 - [mnemopay-sdk](https://github.com/mnemopay/mnemopay-sdk) - Trust & reputation layer for AI agents. Agent Credit Score (300-850) + Merkle-anchored ledger.
-- [nobulex](https://github.com/arian-gogani/nobulex) - Trust economy for autonomous AI agents. Credit scores for machines. Agents earn Trust Capital through verified behavior.
 - [repute](https://github.com/martintopalov/repute) - Open-source reputation scoring for AI agents using Ethereum Attestation Service and Base.
 
 ---
