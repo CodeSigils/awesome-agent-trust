@@ -701,7 +701,7 @@ evidence is invited but never required (star counts are advisory-only). The
 
 ## State facts
 
-As of 2026-10-20:
+As of 2026-10-26:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
@@ -729,9 +729,12 @@ As of 2026-10-20:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-20.
+Last reviewed: 2026-10-26.
 
 <!-- Revision history:
+- 2026-10-26: remove the DMCA-blocked `arian-gogani/nobulex` entry after the
+  live GitHub API returned HTTP 451; this restores complete repository
+  validation for unrelated pull requests
 - 2026-10-20: document the code-security posture — private vulnerability reporting, CodeQL default setup (GitHub Actions + Python, alerts only), malware alerts, secret scanning, and push protection — and add a state-facts bullet; none of these settings add required checks
 - 2026-10-20: expand the dependabot section — separate version updates from repository-level security updates, record the documented PR limits and default cooldown, and add the alert/PR lifecycle rules and 30-day rebase window that govern the weekly review
 - 2026-10-20: reword the review-cadence reference to match the advisory-only star policy — supporting evidence on PRs with advisory signals is invited but optional
