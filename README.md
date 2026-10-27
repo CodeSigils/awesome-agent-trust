@@ -78,6 +78,7 @@ Cryptographic identity for agents — DIDs, Ed25519, zero-trust frameworks.
 - [Alibaba Open Agent Auth](https://github.com/alibaba/open-agent-auth) - Enterprise framework implementing Agent Operation Authorization protocol with cryptographic identity binding and fine-grained permission verification.
 - [ASI](https://github.com/hazennik/asi) - Minimal cryptographic identity standard for agent skill ecosystems. Ed25519 + DID:key + JCS bundling.
 - [HelixID](https://github.com/dgverse-labs/helixid) - Open-source identity and authorization layer for AI agents. Issue verifiable credentials, manage decentralized identifiers.
+- [Open Entity](https://github.com/moltbot-den/openentity) - Public OEIS-1 identity-specification draft and reference registry for AI agents, with a default `Ed25519 did:key root` for signed Entity Documents and hash-chained development records plus transparency-log inclusion proofs.
 - [OrgKernel](https://github.com/MetapriseAI/OrgKernel) - Open-source trust layer for AI agents. Cryptographic agent identity (Ed25519), instance-scoped execution tokens, SHA-256 integrity verification.
 - [Ratify Protocol](https://github.com/identities-ai/ratify-protocol) - Open cryptographic trust protocol for AI agent authorization. Hybrid Ed25519 + ML-DSA-65 (FIPS 204).
 - [W3C Decentralized Identifiers (DIDs)](https://www.w3.org/TR/did-core/) - The foundation. Globally unique, self-sovereign identifiers controlled by the subject.
