@@ -137,7 +137,7 @@ same ref. The workflow-wide `permissions: contents: read` is least
 privilege. Branch protection requires all three jobs to pass and applies to
 administrators. No approving-review requirement is configured because this is
 a solo-maintainer repository; the `secret-scan` job runs on every push and PR
-regardless.
+regardless. All jobs use the pinned `ubuntu-26.04` GitHub-hosted runner label.
 
 | Job              | Steps                                                                                                     | Fails on                                                       |
 | ---------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
@@ -504,10 +504,9 @@ process for replacing them when needed.
    scheduled workflows may run, SHA pinning is required, and only
    `actions/checkout`, `actions/setup-node`, and `gitleaks/gitleaks-action`
    are allowed. Update the policy before adding another action.
-5. Verify repository variables and secrets. CI uses the automatic
-   `GITHUB_TOKEN`; `RUNNER_X86_64` is an optional runner-label variable. Local
-   API checks may use `GH_TOKEN` or `GITHUB_TOKEN`, or the GitHub CLI token.
-   Never put a personal token in the repository.
+5. Verify repository secrets. CI uses the automatic `GITHUB_TOKEN`; local API
+   checks may use `GH_TOKEN` or `GITHUB_TOKEN`, or the GitHub CLI token. Never
+   put a personal token in the repository.
 6. Confirm Dependabot alerts and pull requests are enabled, and identify the
    person/team responsible for reviewing action and npm updates.
 7. Confirm the security-reporting destination in [SECURITY.md](../SECURITY.md)
@@ -701,12 +700,13 @@ evidence is invited but never required (star counts are advisory-only). The
 
 ## State facts
 
-As of 2026-10-26:
+As of 2026-10-27:
 
 - `validate.yml` runs 3 jobs (awesome-lint, validate-repos, secret-scan).
   `main` requires all three checks and applies branch protection to
   administrators; no approving-review requirement is configured for the solo
-  maintainer.
+  maintainer. Every repository-managed workflow job uses the pinned
+  `ubuntu-26.04` runner label.
 - Merge settings: `allow_auto_merge` is `true` and `delete_branch_on_merge` is
   `true` (enabled 2026-10-05), so a merged same-repo head branch is removed
   without maintainer action. Fork PR branches are unaffected by design.
@@ -729,9 +729,12 @@ As of 2026-10-26:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-26.
+Last reviewed: 2026-10-27.
 
 <!-- Revision history:
+- 2026-10-27: pin every GitHub Actions job to `ubuntu-26.04` rather than the
+  moving `ubuntu-latest` label; remove the obsolete `RUNNER_X86_64` override
+  from the handover checklist
 - 2026-10-26: remove the DMCA-blocked `arian-gogani/nobulex` entry after the
   live GitHub API returned HTTP 451; this restores complete repository
   validation for unrelated pull requests

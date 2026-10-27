@@ -76,6 +76,13 @@ and none is reopened. Work that is genuinely outstanding is held in
 [Future considerations](#future-considerations); promoting an item from there
 into planned work means starting a new entry here, not reviving an old one.
 
+- 2026-10-27: pin every repository-managed GitHub Actions job to
+  `ubuntu-26.04`. GitHub's hosted runner image project lists that exact x64
+  label as generally available; this replaces the temporary `ubuntu-latest`
+  migration decision of 2026-10-20 and removes the `RUNNER_X86_64` override so
+  every repository-managed workflow has the same explicit operating-system
+  baseline.
+
 - 2026-09-14: Gitleaks runs as a third `validate.yml` job (SHA-pinned,
   `contents: read`). Push scans run after commits reach GitHub; they cannot
   prevent initial exposure or guarantee that all secrets are detected.
@@ -252,9 +259,12 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Advisory signals are non-blocking; invite supporting evidence from the contributor when useful (for example package-registry downloads) under the advisory-only star policy in contributing.md                                                                                                                                       |
 
-Last reviewed: 2026-10-26.
+Last reviewed: 2026-10-27.
 
 <!-- Revision history:
+- 2026-10-27: replace the temporary `ubuntu-latest` migration policy with an
+  explicit `ubuntu-26.04` pin for every workflow job and remove the runner
+  override from maintenance guidance
 - 2026-10-26: remove the DMCA-blocked `arian-gogani/nobulex` entry so the
   required repository validator can complete; record the evidence and
   decision in Closed Items

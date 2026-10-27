@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   awesome-lint:
-    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,7 +34,7 @@ jobs:
         run: python3 .github/scripts/check-markdown-links.py
 
   validate-repos:
-    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -48,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
   secret-scan:
-    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read

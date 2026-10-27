@@ -86,11 +86,13 @@ class CheckRepoTests(unittest.TestCase):
 
     def test_404_is_not_found(self) -> None:
         error = HTTPError("url", 404, "missing", {}, None)
+        self.addCleanup(error.close)
         with patch.object(validator, "fetch_json", side_effect=error):
             self.assertEqual(validator.check_repo("owner/repo")["errors"], ["NOT_FOUND"])
 
     def test_token_scoped_404_retries_without_credentials(self) -> None:
         scoped_404 = HTTPError("url", 404, "not visible to token", {}, None)
+        self.addCleanup(scoped_404.close)
         metadata = {
             "stargazers_count": 10,
             "description": "Meaningful public repository",
@@ -104,6 +106,7 @@ class CheckRepoTests(unittest.TestCase):
 
     def test_token_scoped_404_is_not_found_only_after_anonymous_retry(self) -> None:
         error = HTTPError("url", 404, "missing", {}, None)
+        self.addCleanup(error.close)
         with patch.object(validator, "fetch_json", side_effect=[error, error]) as fetch:
             result = validator.check_repo("owner/repo", token="scoped-token")
         self.assertEqual(result["errors"], ["NOT_FOUND"])
@@ -111,6 +114,7 @@ class CheckRepoTests(unittest.TestCase):
 
     def test_rate_limit_is_api_error_not_not_found(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
+        self.addCleanup(error.close)
         with patch.object(validator, "fetch_json", side_effect=error):
             result = validator.check_repo("owner/repo")
         self.assertEqual(result["errors"], ["API_ERROR"])
@@ -350,6 +354,7 @@ class GhApiTests(unittest.TestCase):
 
     def test_does_not_retry_http_errors(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
+        self.addCleanup(error.close)
         with patch.object(gh_api, "urlopen", side_effect=error), self.assertRaises(HTTPError):
             gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
 
@@ -483,6 +488,8 @@ class RepositorySettingsTests(unittest.TestCase):
             URLError("offline"),
             ValueError("invalid JSON"),
         ):
+            if isinstance(failure, HTTPError):
+                self.addCleanup(failure.close)
             with (
                 self.subTest(failure=failure),
                 patch.object(settings_verifier, "resolve_token", return_value="test-token"),
@@ -593,6 +600,8 @@ class ExternalLinkReportTests(unittest.TestCase):
     def test_treats_access_denied_as_unknown_and_not_found_as_broken(self) -> None:
         denied = HTTPError("url", 403, "forbidden", {}, None)
         missing = HTTPError("url", 404, "not found", {}, None)
+        self.addCleanup(denied.close)
+        self.addCleanup(missing.close)
         with patch.object(link_reporter, "_request", side_effect=denied):
             self.assertEqual(link_reporter.check_link("https://blocked.example").status, "unknown")
         with patch.object(link_reporter, "_request", side_effect=missing):
