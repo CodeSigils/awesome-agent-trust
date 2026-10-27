@@ -114,7 +114,7 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                              | Documents the `gh auth login` path and local token overrides     |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 73 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 75 regression tests for validation, API helpers, and reporting   |
 
 Governance documents the automation enforces:
 
@@ -384,7 +384,9 @@ fails even when the synthetic fixtures still pass.
 Reads `advisory-baseline.json` and `repo-exceptions.json` locally, summarizes
 counts by signal, and marks exception review dates as `current`, `overdue`, or
 `invalid date`. It never edits either maintainer-owned file and always remains
-advisory; the weekly workflow appends it to the summary without a token.
+advisory; the weekly workflow appends it to the summary without a token. An
+unreadable state file produces a `COULD NOT CHECK` warning and exit status 2,
+so an incomplete report cannot look clean.
 
 ### report-action-freshness.py
 
@@ -607,7 +609,7 @@ explicit `python3` invocation for interpreter clarity.
 | `python3 -m json.tool .github/advisory-baseline.json`        | Validate baseline JSON                           |
 | `python3 -m json.tool .github/repo-exceptions.json`          | Validate exceptions JSON                         |
 
-Expected healthy output: `npm run lint` reports successful linting; all 73 tests
+Expected healthy output: `npm run lint` reports successful linting; all 75 tests
 pass; check-markdown-links prints `PASS: all repository-relative Markdown
 links resolve` and exits 0; validate-repos prints `SUMMARY: 0 hard failure(s)`
 with advisory counts and `ACCEPTED EXCEPTIONS` matching the exception registry,
@@ -732,6 +734,9 @@ As of 2026-10-27:
 Last reviewed: 2026-10-27.
 
 <!-- Revision history:
+- 2026-10-27: make advisory-triage return exit 2 when state files cannot be
+  read, close external-link HTTP error responses, and add regression coverage
+  for both failure paths; update the test count to 75
 - 2026-10-27: pin every GitHub Actions job to `ubuntu-26.04` rather than the
   moving `ubuntu-latest` label; remove the obsolete `RUNNER_X86_64` override
   from the handover checklist
