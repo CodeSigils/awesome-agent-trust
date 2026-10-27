@@ -76,6 +76,11 @@ and none is reopened. Work that is genuinely outstanding is held in
 [Future considerations](#future-considerations); promoting an item from there
 into planned work means starting a new entry here, not reviving an old one.
 
+- 2026-10-27: fix two report-path defects identified by review. Advisory
+  triage now exits 2 when it cannot read its state files, matching the shared
+  incomplete-run contract, and external-link monitoring closes `HTTPError`
+  responses. Regression coverage exercises both paths.
+
 - 2026-10-27: pin every repository-managed GitHub Actions job to
   `ubuntu-26.04`. GitHub's hosted runner image project lists that exact x64
   label as generally available; this replaces the temporary `ubuntu-latest`
@@ -227,9 +232,9 @@ formally promoting an item into planned work.
    no token and failed or malformed GitHub reads return 2, settings drift
    returns 1, and the expected protection returns 0. The tests patch only its
    credential and API boundaries, so they exercise the exit-status contract
-   without needing a live administrative token. `report-advisory-triage.py`
-   remains intentionally without `main()` coverage: it is straight-line I/O
-   whose failure surface already sits in tested `load_json` and `render_report`.
+   without needing a live administrative token. Advisory-triage `main()` also
+   has direct coverage for unreadable state files, so its incomplete-run exit
+   status remains locked to the shared contract.
 
 ### Security tightening under consideration
 
@@ -262,6 +267,8 @@ a current compromise or CI failure:
 Last reviewed: 2026-10-27.
 
 <!-- Revision history:
+- 2026-10-27: record the advisory-triage incomplete-run exit fix and
+  external-link HTTP-error cleanup, with direct regression coverage
 - 2026-10-27: replace the temporary `ubuntu-latest` migration policy with an
   explicit `ubuntu-26.04` pin for every workflow job and remove the runner
   override from maintenance guidance

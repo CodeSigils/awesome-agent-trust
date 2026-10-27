@@ -78,13 +78,13 @@ def main() -> int:
     )
     warnings = [error for error in (baseline_error, exceptions_error) if error]
     if warnings:
-        report += "\n\nWarnings:\n" + "\n".join(f"- {warning}" for warning in warnings)
+        report += "\n\nCOULD NOT CHECK:\n" + "\n".join(f"- {warning}" for warning in warnings)
     print(report)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with Path(summary).open("a", encoding="utf-8") as handle:
             handle.write(report + "\n")
-    return 0
+    return 2 if warnings else 0
 
 
 if __name__ == "__main__":

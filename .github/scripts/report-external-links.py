@@ -58,17 +58,27 @@ def _request(url: str, method: str) -> tuple[int, str]:
         return response.status, response.geturl()
 
 
+def _http_error_result(url: str, error: HTTPError) -> LinkResult:
+    """Classify and close an HTTP error response."""
+    try:
+        status = "broken" if error.code in {404, 410} else "unknown"
+        return LinkResult(url, status, f"HTTP {error.code}")
+    finally:
+        error.close()
+
+
 def check_link(url: str) -> LinkResult:
     """Classify a link without treating remote availability as a CI failure."""
     try:
         status_code, resolved_url = _request(url, "HEAD")
     except HTTPError as exc:
         if exc.code not in {405, 501}:
-            return LinkResult(url, "broken" if exc.code in {404, 410} else "unknown", f"HTTP {exc.code}")
+            return _http_error_result(url, exc)
+        exc.close()
         try:
             status_code, resolved_url = _request(url, "GET")
         except HTTPError as get_exc:
-            return LinkResult(url, "broken" if get_exc.code in {404, 410} else "unknown", f"HTTP {get_exc.code}")
+            return _http_error_result(url, get_exc)
         except (URLError, TimeoutError, OSError, ValueError) as get_exc:
             return LinkResult(url, "unknown", type(get_exc).__name__)
     except (URLError, TimeoutError, OSError, ValueError) as exc:

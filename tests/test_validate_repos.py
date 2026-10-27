@@ -602,10 +602,30 @@ class ExternalLinkReportTests(unittest.TestCase):
         missing = HTTPError("url", 404, "not found", {}, None)
         self.addCleanup(denied.close)
         self.addCleanup(missing.close)
-        with patch.object(link_reporter, "_request", side_effect=denied):
+        with patch.object(denied, "close") as close_denied, patch.object(
+            link_reporter, "_request", side_effect=denied
+        ):
             self.assertEqual(link_reporter.check_link("https://blocked.example").status, "unknown")
-        with patch.object(link_reporter, "_request", side_effect=missing):
+        close_denied.assert_called_once_with()
+        with patch.object(missing, "close") as close_missing, patch.object(
+            link_reporter, "_request", side_effect=missing
+        ):
             self.assertEqual(link_reporter.check_link("https://missing.example").status, "broken")
+        close_missing.assert_called_once_with()
+
+    def test_fallback_closes_head_and_get_http_errors(self) -> None:
+        method_not_allowed = HTTPError("url", 405, "method not allowed", {}, None)
+        missing = HTTPError("url", 404, "not found", {}, None)
+        self.addCleanup(method_not_allowed.close)
+        self.addCleanup(missing.close)
+        with patch.object(method_not_allowed, "close") as close_head, patch.object(
+            missing, "close"
+        ) as close_get, patch.object(
+            link_reporter, "_request", side_effect=[method_not_allowed, missing]
+        ):
+            self.assertEqual(link_reporter.check_link("https://missing.example").status, "broken")
+        close_head.assert_called_once_with()
+        close_get.assert_called_once_with()
 
     def test_main_returns_0_when_the_readme_is_readable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -647,6 +667,19 @@ class AdvisoryTriageReportTests(unittest.TestCase):
         report = triage_reporter.render_report(baseline=None, exceptions={"exceptions": "bad"}, today=date(2026, 9, 15))
         self.assertIn("Unable to read advisory baseline", report)
         self.assertIn("`exceptions` is not a list", report)
+
+    def test_main_exits_2_when_state_files_cannot_be_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = io.StringIO()
+            with (
+                patch.object(triage_reporter, "REPO_ROOT", root),
+                patch.object(triage_reporter, "BASELINE_PATH", root / "missing-baseline.json"),
+                patch.object(triage_reporter, "EXCEPTIONS_PATH", root / "missing-exceptions.json"),
+                redirect_stdout(output),
+            ):
+                self.assertEqual(triage_reporter.main(), 2)
+        self.assertIn("COULD NOT CHECK", output.getvalue())
 
 
 class EntryLinkFlagsTests(unittest.TestCase):
