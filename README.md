@@ -102,6 +102,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 - [Deterministic Agent Control Protocol](https://github.com/elliot35/deterministic-agent-control-protocol) - Governance gateway for AI agents. Bounded, auditable, session-aware control with MCP proxy.
 - [faramesh-core](https://github.com/faramesh/faramesh-core) - Governance-as-Code for AI agents. Declarative constraints with deterministic enforcement.
 - [Hermes Katana](https://github.com/claudlos/hermes-katana) - Defense-in-depth security toolkit for LLM agents. Taint tracking, proxy secret guard, policy engine, and red-team benchmark.
+- [HOL Guard](https://github.com/hashgraph-online/hol-guard) - Open-source local policy and approval controls for supported AI coding-agent actions, with plugin and MCP configuration security checks.
 - [Lelu](https://github.com/Lelu-ai/lelu) - Open-source authorization engine for AI agents. Confidence-aware gating, human-in-the-loop, and policy enforcement.
 - [lunar.dev](https://github.com/TheLunarCompany/lunar) - Agent-native MCP Gateway for governance and security.
 - [pattern8](https://github.com/Aquifer-sea/pattern8) - AI Agent Governance Framework. Constrain how AI agents behave in your project. `pip install pattern8`.
