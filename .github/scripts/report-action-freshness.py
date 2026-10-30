@@ -9,7 +9,7 @@ from pathlib import Path
 
 from gh_api import fetch_json, resolve_token
 
-PINNED = re.compile(r"uses:\s*([\w.-]+/[\w.-]+)@([0-9a-f]{40})\s+#\s*v(\d+)")
+PINNED = re.compile(r"^\s*(?:-\s*)?uses:\s*([\w.-]+/[\w.-]+)@([0-9a-f]{40})\s+#\s*v(\d+)")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 

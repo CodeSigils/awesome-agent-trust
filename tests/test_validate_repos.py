@@ -13,7 +13,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Self
-from unittest.mock import patch
+from unittest.mock import call, patch
 from urllib.error import HTTPError, URLError
 
 SCRIPTS_DIR = Path(__file__).parents[1] / ".github" / "scripts"
@@ -70,7 +70,8 @@ class ExtractReposTests(unittest.TestCase):
             path = Path(directory) / "README.md"
             path.write_text(
                 "[One](https://github.com/owner/repo)\n"
-                "[File](https://github.com/owner/repo/blob/main/file.md)\n",
+                "[File](https://github.com/owner/repo/blob/main/file.md)\n"
+                "[Incomplete](https://github.com/owner)\n",
                 encoding="utf-8",
             )
             self.assertEqual(validator.extract_repos(path), {"owner/repo"})
@@ -100,7 +101,11 @@ class CheckRepoTests(unittest.TestCase):
             "pushed_at": "2026-09-01T00:00:00Z",
         }
         with patch.object(validator, "fetch_json", side_effect=[scoped_404, metadata]) as fetch:
-            result = validator.check_repo("owner/repo", token="scoped-token")
+            result = validator.check_repo(
+                "owner/repo",
+                token="scoped-token",
+                now=datetime(2026, 10, 1, tzinfo=timezone.utc),
+            )
         self.assertEqual(result["errors"], [])
         self.assertIsNone(fetch.call_args_list[1].kwargs.get("token"))
 
@@ -111,6 +116,24 @@ class CheckRepoTests(unittest.TestCase):
             result = validator.check_repo("owner/repo", token="scoped-token")
         self.assertEqual(result["errors"], ["NOT_FOUND"])
         self.assertEqual(fetch.call_count, 2)
+
+    def test_token_scoped_404_fallback_http_error_is_api_error(self) -> None:
+        scoped_404 = HTTPError("url", 404, "not visible to token", {}, None)
+        fallback_500 = HTTPError("url", 500, "server error", {}, None)
+        self.addCleanup(scoped_404.close)
+        self.addCleanup(fallback_500.close)
+        with patch.object(validator, "fetch_json", side_effect=[scoped_404, fallback_500]):
+            result = validator.check_repo("owner/repo", token="scoped-token")
+        self.assertEqual(result["errors"], ["API_ERROR"])
+        self.assertIn("without credentials", result["detail"])
+
+    def test_token_scoped_404_fallback_network_failure_is_api_error(self) -> None:
+        scoped_404 = HTTPError("url", 404, "not visible to token", {}, None)
+        self.addCleanup(scoped_404.close)
+        with patch.object(validator, "fetch_json", side_effect=[scoped_404, URLError("offline")]):
+            result = validator.check_repo("owner/repo", token="scoped-token")
+        self.assertEqual(result["errors"], ["API_ERROR"])
+        self.assertIn("offline", result["detail"])
 
     def test_rate_limit_is_api_error_not_not_found(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
@@ -165,6 +188,13 @@ class TokenTests(unittest.TestCase):
             gh_api.subprocess, "run", return_value=completed
         ):
             self.assertEqual(validator.resolve_token(), "cli-token")
+
+    def test_returns_none_when_github_cli_is_missing_or_times_out(self) -> None:
+        for error in (OSError("missing"), gh_api.subprocess.TimeoutExpired("gh", 5)):
+            with self.subTest(error=type(error).__name__), patch.dict(
+                os.environ, {}, clear=True
+            ), patch.object(gh_api.subprocess, "run", side_effect=error):
+                self.assertIsNone(gh_api.resolve_token())
 
 
 class ExceptionTests(unittest.TestCase):
@@ -250,6 +280,33 @@ class ExceptionTests(unittest.TestCase):
         self.assertEqual(exceptions, {})
         self.assertTrue(any("must contain only strings" in error for error in errors))
 
+    def test_reports_unreadable_exception_file(self) -> None:
+        with patch.object(Path, "read_text", side_effect=OSError("denied")):
+            exceptions, errors = validator.load_exceptions(Path("exceptions.json"))
+        self.assertEqual(exceptions, {})
+        self.assertTrue(any("cannot read" in error for error in errors))
+
+    def test_reports_structural_exception_errors(self) -> None:
+        valid = {
+            "repo": "owner/repo",
+            "checks": ["LOW_STARS"],
+            "reason": "This reason is long enough to be reviewed.",
+            "review_after": "2027-01-01",
+        }
+        cases = [
+            (["bad"], "must be an object"),
+            ([valid, valid], "duplicate exception"),
+            ([{**valid, "checks": "LOW_STARS"}], "checks must be a list"),
+            ([{**valid, "checks": []}], "checks must not be empty"),
+            ([{**valid, "review_after": "not-a-date"}], "review_after must be an ISO date"),
+        ]
+        for entries, expected in cases:
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "exceptions.json"
+                path.write_text(json.dumps({"exceptions": entries}), encoding="utf-8")
+                _, errors = validator.load_exceptions(path, today=date(2026, 1, 1))
+                self.assertTrue(any(expected in error for error in errors), errors)
+
 
 class BaselineTests(unittest.TestCase):
     def test_loads_advisories_as_observed_pairs(self) -> None:
@@ -286,17 +343,40 @@ class BaselineTests(unittest.TestCase):
         _, _, resolved = validator.compare_advisories({}, baseline, complete=True)
         self.assertEqual(resolved, baseline)
 
+    def test_reports_unreadable_baseline_file(self) -> None:
+        with patch.object(Path, "read_text", side_effect=OSError("denied")):
+            baseline, errors = validator.load_advisory_baseline(Path("baseline.json"))
+        self.assertEqual(baseline, set())
+        self.assertTrue(any("cannot read" in error for error in errors))
+
+    def test_reports_structural_baseline_errors(self) -> None:
+        cases = [
+            ({"reviewed": "2026-01-01", "advisories": []}, "must be an object"),
+            ({"reviewed": "not-a-date", "advisories": {}}, "'reviewed' must be an ISO date"),
+            (
+                {"reviewed": "2026-01-01", "advisories": {"LOW_STARS": "owner/repo"}},
+                "must be a list of repositories",
+            ),
+        ]
+        for payload, expected in cases:
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "baseline.json"
+                path.write_text(json.dumps(payload), encoding="utf-8")
+                _, errors = validator.load_advisory_baseline(path)
+                self.assertTrue(any(expected in error for error in errors), errors)
+
 
 class DescriptionTests(unittest.TestCase):
     def test_finds_bare_entries(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "README.md"
             path.write_text(
+                "# Projects\n"
                 "- [Bare](https://example.com)\n"
                 "- [Good](https://example.com/good) - Useful description.\n",
                 encoding="utf-8",
             )
-            self.assertEqual(validator.check_readme_descriptions(path), [(1, "- [Bare](https://example.com)")])
+            self.assertEqual(validator.check_readme_descriptions(path), [(2, "- [Bare](https://example.com)")])
 
 
 class OrderingTests(unittest.TestCase):
@@ -306,6 +386,7 @@ class OrderingTests(unittest.TestCase):
             "- [Zed](https://example.com/zed)\n"
             "- [Alpha](https://example.com/alpha)\n\n"
             "## Projects\n"
+            "Some prose that is not an entry.\n"
             "- [alpha](https://example.com/a) - A.\n"
             "- [Beta](https://example.com/b) - B.\n"
         )
@@ -355,8 +436,31 @@ class GhApiTests(unittest.TestCase):
     def test_does_not_retry_http_errors(self) -> None:
         error = HTTPError("url", 403, "rate limited", {}, None)
         self.addCleanup(error.close)
-        with patch.object(gh_api, "urlopen", side_effect=error), self.assertRaises(HTTPError):
+        with patch.object(gh_api, "urlopen", side_effect=error) as fake, self.assertRaises(HTTPError):
             gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=3)
+        self.assertEqual(fake.call_count, 1, "HTTP errors are not transient and must not be retried")
+
+    def test_sends_authorization_header_when_a_token_is_given(self) -> None:
+        class Response:
+            def __enter__(self) -> Self:
+                return self
+
+            def __exit__(self, *_: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return b"{}"
+
+        with patch.object(gh_api, "urlopen", return_value=Response()) as fake:
+            gh_api.fetch_json("https://api.github.com/repos/owner/repo", token="secret")
+        request = fake.call_args.args[0]
+        self.assertEqual(request.get_header("Authorization"), "Bearer secret")
+
+    def test_raises_the_last_transient_error_after_retries_are_exhausted(self) -> None:
+        with patch.object(gh_api, "urlopen", side_effect=URLError("offline")) as fake:
+            with self.assertRaises(URLError):
+                gh_api.fetch_json("https://api.github.com/repos/owner/repo", max_retries=2)
+        self.assertEqual(fake.call_count, 2)
 
     def test_mask_token_replaces_token_in_text(self) -> None:
         self.assertEqual(
@@ -423,11 +527,28 @@ class BaselineAuditTests(unittest.TestCase):
         self.assertEqual((resolved, still_below, unavailable, api_errors), ([], [], [], []))
 
 
+def extract_run_block(workflow: str, marker: str) -> str:
+    lines = workflow.splitlines()
+    for index, line in enumerate(lines):
+        match = re.match(r"^(\s*)(?:-\s*)?run: \|\s*$", line)
+        if not match:
+            continue
+        body_indent = line.index("run:") + 2
+        body: list[str] = []
+        for following in lines[index + 1:]:
+            if following.strip() and len(following) - len(following.lstrip()) < body_indent:
+                break
+            body.append(following[body_indent:] if following.strip() else "")
+        block = "\n".join(body)
+        if marker in block:
+            return block
+    raise AssertionError(f"no run block containing {marker!r}")
+
+
 class FreshnessWorkflowTests(unittest.TestCase):
     def test_report_preserves_output_and_exit_status(self) -> None:
         workflow = (SCRIPTS_DIR.parent / "workflows" / "dependency-freshness.yml").read_text()
-        body = workflow.split("        run: |\n", 1)[1]
-        body = "\n".join(line[10:] for line in body.splitlines())
+        body = extract_run_block(workflow, "/tmp/validator.log")
         for status in (0, 1, 2):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
                 summary = Path(directory) / "summary.md"
@@ -443,6 +564,16 @@ class FreshnessWorkflowTests(unittest.TestCase):
                 self.assertEqual(result.returncode, status, result.stderr)
                 self.assertIn("validator output", summary.read_text())
                 self.assertEqual("Validation failed" in summary.read_text(), status != 0)
+
+    def test_extracts_the_validator_block_when_another_run_block_exists(self) -> None:
+        workflow = (
+            "steps:\n"
+            "  - run: |\n"
+            "      echo first\n"
+            "  - run: |\n"
+            "      tee /tmp/validator.log\n"
+        )
+        self.assertEqual(extract_run_block(workflow, "/tmp/validator.log"), "tee /tmp/validator.log")
 
 
 class RepositorySettingsTests(unittest.TestCase):
@@ -627,6 +758,57 @@ class ExternalLinkReportTests(unittest.TestCase):
         close_head.assert_called_once_with()
         close_get.assert_called_once_with()
 
+    def test_request_returns_status_and_resolved_url(self) -> None:
+        class Response:
+            status = 200
+
+            def __enter__(self) -> Self:
+                return self
+
+            def __exit__(self, *_: object) -> None:
+                return None
+
+            def geturl(self) -> str:
+                return "https://example.org/final"
+
+        with patch.object(link_reporter, "urlopen", return_value=Response()):
+            self.assertEqual(
+                link_reporter._request("https://example.org", "HEAD"),
+                (200, "https://example.org/final"),
+            )
+
+    def test_fallback_get_network_failure_is_unknown_and_closes_head(self) -> None:
+        method_not_allowed = HTTPError("url", 405, "method not allowed", {}, None)
+        self.addCleanup(method_not_allowed.close)
+        with patch.object(method_not_allowed, "close") as close_head, patch.object(
+            link_reporter, "_request", side_effect=[method_not_allowed, URLError("offline")]
+        ):
+            result = link_reporter.check_link("https://example.org")
+        self.assertEqual(result.status, "unknown")
+        self.assertIn("URLError", result.detail)
+        close_head.assert_called_once_with()
+
+    def test_head_network_failure_is_unknown(self) -> None:
+        with patch.object(link_reporter, "_request", side_effect=URLError("offline")):
+            result = link_reporter.check_link("https://example.org")
+        self.assertEqual(result.status, "unknown")
+        self.assertIn("URLError", result.detail)
+
+    def test_main_writes_the_step_summary_when_the_variable_is_set(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            readme = root / "README.md"
+            summary = root / "summary.md"
+            readme.write_text("[spec](https://example.org/spec)\n", encoding="utf-8")
+            with (
+                patch.object(link_reporter, "README_PATH", readme),
+                patch.object(link_reporter, "_request", return_value=(200, "https://example.org/spec")),
+                patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                redirect_stdout(io.StringIO()),
+            ):
+                self.assertEqual(link_reporter.main(), 0)
+            self.assertIn("External link health", summary.read_text(encoding="utf-8"))
+
     def test_main_returns_0_when_the_readme_is_readable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "README.md"
@@ -667,6 +849,56 @@ class AdvisoryTriageReportTests(unittest.TestCase):
         report = triage_reporter.render_report(baseline=None, exceptions={"exceptions": "bad"}, today=date(2026, 9, 15))
         self.assertIn("Unable to read advisory baseline", report)
         self.assertIn("`exceptions` is not a list", report)
+
+    def test_load_json_rejects_a_non_object_top_level_value(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "state.json"
+            path.write_text("[]", encoding="utf-8")
+            with patch.object(triage_reporter, "REPO_ROOT", root):
+                value, error = triage_reporter.load_json(path)
+        self.assertIsNone(value)
+        self.assertIn("top-level value must be an object", error or "")
+
+    def test_render_report_marks_invalid_advisories_and_exception_entries(self) -> None:
+        report = triage_reporter.render_report(
+            baseline={"advisories": []},
+            exceptions={"exceptions": ["bad", {"repo": "owner/repo", "review_after": "not-a-date"}]},
+            today=date(2026, 9, 15),
+        )
+        self.assertIn("`advisories` is not an object.", report)
+        self.assertIn("*(invalid entry)*", report)
+        self.assertIn("invalid date", report)
+
+    def test_main_writes_the_step_summary_when_the_variable_is_set(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline = root / "baseline.json"
+            exceptions = root / "exceptions.json"
+            summary = root / "summary.md"
+            baseline.write_text('{"advisories": {}}', encoding="utf-8")
+            exceptions.write_text('{"exceptions": []}', encoding="utf-8")
+            with (
+                patch.object(triage_reporter, "BASELINE_PATH", baseline),
+                patch.object(triage_reporter, "EXCEPTIONS_PATH", exceptions),
+                patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                redirect_stdout(io.StringIO()),
+            ):
+                self.assertEqual(triage_reporter.main(), 0)
+            self.assertIn("Advisory triage", summary.read_text(encoding="utf-8"))
+
+    def test_entry_point_exits_zero(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            summary = Path(directory) / "summary.md"
+            result = subprocess.run(
+                [sys.executable, str(SCRIPTS_DIR / "report-advisory-triage.py")],
+                env={**os.environ, "GITHUB_STEP_SUMMARY": str(summary)},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Advisory triage", summary.read_text(encoding="utf-8"))
 
     def test_main_exits_2_when_state_files_cannot_be_read(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -822,6 +1054,37 @@ class ExitCodeContractTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(err, "")
 
+    def test_link_checker_skips_vcs_and_dependency_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for directory in (root / ".git", root / "node_modules" / "pkg"):
+                directory.mkdir(parents=True)
+                (directory / "ignored.md").write_text("[gone](missing.md)\n", encoding="utf-8")
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 0)
+        self.assertEqual(err, "")
+
+    def test_link_checker_skips_non_relative_link_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.md").write_text(
+                "[a](url) [b](https://example.org) [c](//cdn.example/x) "
+                "[d](#anchor) [e](mailto:help@example.org) [f](<https://example.org/x>)\n",
+                encoding="utf-8",
+            )
+            code, _out, err = self._run_link_checker(root)
+        self.assertEqual(code, 0)
+        self.assertEqual(err, "")
+
+    def test_link_checker_entry_point_exits_zero(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "check-markdown-links.py")],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_link_checker_exits_1_for_a_broken_link(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -853,14 +1116,192 @@ class ExitCodeContractTests(unittest.TestCase):
         self.assertIn("b.md", err)
 
 
-# The trailing `# v7.0.1` is required by the PINNED pattern, not decoration:
-# drop it and every test below reports "No pinned actions found" instead of
-# failing, so the fixture has to state the pin exactly as a workflow does.
+class ValidateReposMainTests(unittest.TestCase):
+    def _run_main(
+        self,
+        *,
+        check_result: dict[str, object],
+        exceptions: dict[str, set[str]] | None = None,
+        baseline: set[tuple[str, str]] | None = None,
+        bare: list[tuple[int, str]] | None = None,
+        misordered: list[str] | None = None,
+        entry_flags: dict[str, list[str]] | None = None,
+        comparison: tuple[set[tuple[str, str]], set[tuple[str, str]], set[tuple[str, str]]] | None = None,
+    ) -> tuple[int, str]:
+        out = io.StringIO()
+        with (
+            patch.object(validator, "read_required_inputs", return_value=None),
+            patch.object(validator, "extract_repos", return_value={"owner/repo"}),
+            patch.object(validator, "load_exceptions", return_value=(exceptions or {}, [])),
+            patch.object(validator, "load_advisory_baseline", return_value=(baseline or set(), [])),
+            patch.object(validator, "resolve_token", return_value=None),
+            patch.object(validator, "check_repo", return_value=check_result),
+            patch.object(validator, "check_readme_descriptions", return_value=bare or []),
+            patch.object(validator, "check_readme_ordering", return_value=misordered or []),
+            patch.object(validator, "extract_entry_links", return_value=[]),
+            patch.object(validator, "entry_flags_for", return_value=entry_flags or {}),
+            patch.object(validator, "compare_advisories", return_value=comparison or (set(), set(), set())),
+            patch.object(sys, "argv", ["validate-repos.py"]),
+            redirect_stdout(out),
+        ):
+            return validator.main(), out.getvalue()
+
+    def test_clean_run_returns_0_and_summarizes(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": [], "detail": ""}
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("0 hard failure(s), 0 new and 0 known advisory flag(s)", out)
+
+    def test_hard_failure_returns_1_and_prints_detail(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": ["NOT_FOUND"], "detail": "404 missing"}
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("NOT_FOUND (1):", out)
+        self.assertIn("owner/repo: 404 missing", out)
+        self.assertIn("1 hard failure(s)", out)
+
+    def test_accepted_exception_is_waived_and_counted(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": ["LOW_STARS"], "detail": ""},
+            exceptions={"owner/repo": {"LOW_STARS"}},
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("ACCEPTED EXCEPTIONS: 1", out)
+        self.assertNotIn("LOW_STARS (1):", out)
+
+    def test_unknown_exception_repository_is_a_config_error(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": [], "detail": ""},
+            exceptions={"other/repo": {"LOW_STARS"}},
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("CONFIG_ERROR (1):", out)
+        self.assertIn("exception refers to an unlisted repository", out)
+
+    def test_baseline_audit_flag_delegates_without_network(self) -> None:
+        out = io.StringIO()
+        with (
+            patch.object(validator, "run_baseline_audit", return_value=0) as audit,
+            patch.object(sys, "argv", ["validate-repos.py", "--baseline-audit"]),
+            redirect_stdout(out),
+        ):
+            self.assertEqual(validator.main(), 0)
+        audit.assert_called_once_with()
+
+    def test_known_and_resolved_advisories_are_printed(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": [], "detail": ""},
+            comparison=(
+                {("LOW_STARS", "owner/repo"), ("LOW_STARS", "other/repo")},
+                {("LOW_STARS", "owner/repo")},
+                {("NO_LICENSE", "resolved/repo")},
+            ),
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("KNOWN ADVISORIES: 1", out)
+        self.assertIn("RESOLVED ADVISORIES: 1", out)
+        self.assertIn("NO_LICENSE: resolved/repo", out)
+
+    def test_hard_failure_without_detail_prints_no_detail_line(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": ["NOT_FOUND"], "detail": ""}
+        )
+        self.assertEqual(code, 1)
+        self.assertNotIn("owner/repo:", out)
+
+    def test_incomplete_metadata_skips_comparison_and_reports_new_advisories(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": ["API_ERROR"], "detail": "offline"},
+            comparison=(set(), {("LOW_STARS", "owner/repo")}, set()),
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("ADVISORY COMPARISON SKIPPED", out)
+        self.assertIn("NEW_LOW_STARS (1):", out)
+
+    def test_readme_quality_flags_are_reported(self) -> None:
+        code, out = self._run_main(
+            check_result={"repo": "owner/repo", "errors": [], "detail": ""},
+            bare=[(3, "- [Bare](https://example.com)")],
+            misordered=["Projects"],
+            entry_flags={"UNVALIDATED_HOST": ["Spec (example.com)"]},
+            comparison=(
+                set(),
+                {("BARE_ENTRY", "README.md:3"), ("UNVALIDATED_HOST", "Spec (example.com)")},
+                set(),
+            ),
+        )
+        self.assertEqual(code, 1, "a misordered section is a hard failure")
+        self.assertIn("NEW_BARE_ENTRY (1):", out)
+        self.assertIn("MISORDERED (1):", out)
+        self.assertIn("NEW_UNVALIDATED_HOST (1):", out)
+
+    def test_baseline_audit_renders_every_result_section(self) -> None:
+        out = io.StringIO()
+        with (
+            patch.object(validator, "read_required_inputs", return_value=None),
+            patch.object(
+                validator,
+                "load_advisory_baseline",
+                return_value=({("LOW_STARS", "owner/repo")}, []),
+            ),
+            patch.object(validator, "resolve_token", return_value=None),
+            patch.object(
+                validator,
+                "audit_low_stars",
+                return_value=(
+                    [{"repo": "resolved/repo", "stars": 10}],
+                    [{"repo": "below/repo", "stars": 2}],
+                    [{"repo": "gone/repo", "reason": "archived"}],
+                    [],
+                ),
+            ),
+            redirect_stdout(out),
+        ):
+            code = validator.run_baseline_audit()
+        self.assertEqual(code, 0)
+        self.assertIn("RESOLVED (>= 5 stars, clear from baseline):", out.getvalue())
+        self.assertIn("STILL BELOW 5 stars:", out.getvalue())
+        self.assertIn("UNAVAILABLE (gone, renamed, or archived; do not clear):", out.getvalue())
+        self.assertIn(
+            "SUMMARY: 1 resolved, 1 still below, 1 unavailable, 0 api error(s)",
+            out.getvalue(),
+        )
+
+    def test_baseline_audit_config_error_returns_1(self) -> None:
+        out = io.StringIO()
+        with (
+            patch.object(validator, "read_required_inputs", return_value=None),
+            patch.object(
+                validator,
+                "load_advisory_baseline",
+                return_value=(set(), ["baseline is malformed"]),
+            ),
+            redirect_stdout(out),
+        ):
+            self.assertEqual(validator.run_baseline_audit(), 1)
+        self.assertIn("baseline is malformed", out.getvalue())
+
+
+# The trailing `# v7.0.1` is required by this repository's PINNED pattern,
+# not by GitHub. Without it the reporter prints "No pinned actions found." and
+# exits 0, so the row-expecting tests below fail on their assertions rather
+# than on a reporter error. Keep the comment so the parse path stays exercised.
+PINNED_SHA = "3d3c42e5aac5ba805825da76410c181273ba90b1"
 PINNED_WORKFLOW = (
+    "name: Validate\n"
+    "on: push\n"
     "jobs:\n"
     "  build:\n"
+    "    runs-on: ubuntu-latest\n"
     "    steps:\n"
-    "      - uses: actions/checkout@1111111111111111111111111111111111111111 # v7.0.1\n"
+    f"      - uses: actions/checkout@{PINNED_SHA} # v7.0.1\n"
+)
+PINNED_LINE = next(
+    number
+    for number, line in enumerate(PINNED_WORKFLOW.splitlines(), 1)
+    if "uses:" in line
 )
 
 
@@ -903,7 +1344,11 @@ class ActionFreshnessReportTests(unittest.TestCase):
                 freshness_reporter.latest_sha("actions/checkout", "7", "t"),
                 "a" * 40,
             )
-        self.assertEqual(fetch.call_count, 1, "a lightweight tag needs no second request")
+        fetch.assert_called_once_with(
+            "https://api.github.com/repos/actions/checkout/git/ref/tags/v7",
+            token="t",
+            timeout=20,
+        )
 
     def test_latest_sha_follows_an_annotated_tag_to_its_commit(self) -> None:
         with patch.object(freshness_reporter, "fetch_json") as fetch:
@@ -915,7 +1360,21 @@ class ActionFreshnessReportTests(unittest.TestCase):
                 freshness_reporter.latest_sha("actions/setup-node", "7", "t"),
                 "c" * 40,
             )
-        self.assertEqual(fetch.call_count, 2, "an annotated tag needs a second request")
+        self.assertEqual(
+            fetch.call_args_list,
+            [
+                call(
+                    "https://api.github.com/repos/actions/setup-node/git/ref/tags/v7",
+                    token="t",
+                    timeout=20,
+                ),
+                call(
+                    f"https://api.github.com/repos/actions/setup-node/git/tags/{'b' * 40}",
+                    token="t",
+                    timeout=20,
+                ),
+            ],
+        )
 
     def test_latest_sha_rejects_an_unexpected_tag_object_type(self) -> None:
         with patch.object(freshness_reporter, "fetch_json") as fetch:
@@ -936,11 +1395,12 @@ class ActionFreshnessReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
-            code, out = self._run_main(root, "1" * 40)
+            code, out = self._run_main(root, PINNED_SHA)
         self.assertEqual(code, 0)
         self.assertIn("current", out)
         self.assertIn("actions/checkout", out)
-        self.assertIn("validate.yml:4", out)
+        self.assertIn("| `v7` |", out)
+        self.assertIn(f"validate.yml:{PINNED_LINE}", out)
 
     def test_main_reports_a_stale_pin(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -950,19 +1410,36 @@ class ActionFreshnessReportTests(unittest.TestCase):
         self.assertEqual(code, 0, "a stale pin is a review signal, never a failure")
         self.assertIn("update available", out)
 
-    def test_main_reports_unknown_when_the_lookup_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
-            code, out = self._run_main(root, OSError("rate limited"))
-        self.assertEqual(code, 0)
-        self.assertIn("unknown", out)
+    def test_main_reports_unknown_for_every_lookup_failure_it_catches(self) -> None:
+        for error in (OSError("rate limited"), KeyError("object"), ValueError("bad tag")):
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+                code, out = self._run_main(root, error)
+                self.assertEqual(code, 0)
+                self.assertIn("unknown", out)
 
     def test_main_says_so_when_no_action_is_pinned(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             self._write_workflow(root, "validate.yml", "jobs:\n  build:\n    runs-on: ubuntu-latest\n")
-            code, out = self._run_main(root, "1" * 40)
+            code, out = self._run_main(root, PINNED_SHA)
+        self.assertEqual(code, 0)
+        self.assertIn("No pinned actions found.", out)
+
+    def test_main_ignores_pins_that_are_not_action_step_lines(self) -> None:
+        workflow = (
+            "jobs:\n"
+            "  build:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    steps:\n"
+            f"      # - uses: actions/checkout@{PINNED_SHA} # v7.0.1\n"
+            f'      - run: echo "uses: actions/checkout@{PINNED_SHA} # v7.0.1"\n'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_workflow(root, "validate.yml", workflow)
+            code, out = self._run_main(root, PINNED_SHA)
         self.assertEqual(code, 0)
         self.assertIn("No pinned actions found.", out)
 
@@ -975,7 +1452,7 @@ class ActionFreshnessReportTests(unittest.TestCase):
             with (
                 patch.object(freshness_reporter, "REPO_ROOT", root),
                 patch.object(freshness_reporter, "resolve_token", return_value="t"),
-                patch.object(freshness_reporter, "latest_sha", return_value="1" * 40),
+                patch.object(freshness_reporter, "latest_sha", return_value=PINNED_SHA),
                 patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
                 redirect_stdout(out),
             ):
@@ -991,16 +1468,26 @@ class ActionFreshnessReportTests(unittest.TestCase):
             workflow = self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
             workflow.write_bytes(b"uses: \xff\xfe not utf-8\n")
             self._write_workflow(root, "other.yml", PINNED_WORKFLOW)
-            code, out = self._run_main(root, "1" * 40)
+            code, out = self._run_main(root, PINNED_SHA)
         self.assertEqual(code, 2, "an incomplete run must be distinguishable from a finding")
         self.assertIn("COULD NOT CHECK", out)
         self.assertIn("other.yml", out, "the readable workflow is still reported")
 
+    def test_main_says_so_when_every_workflow_is_unreadable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workflow = self._write_workflow(root, "validate.yml", PINNED_WORKFLOW)
+            workflow.write_bytes(b"uses: \xff\xfe not utf-8\n")
+            code, out = self._run_main(root, PINNED_SHA)
+        self.assertEqual(code, 2)
+        self.assertIn("No pinned actions could be read.", out)
+        self.assertIn("COULD NOT CHECK", out)
+
 
 class ScriptInventoryTests(unittest.TestCase):
-    # Measured, not assumed: backticked script paths appear only in the file
-    # inventory table. A prose mention added elsewhere would double-count here
-    # rather than fail, so re-check that before trusting a green result.
+    # `documented` is a set, so a duplicate backticked path is harmless. The
+    # failure mode this test catches is a path naming a script that is not on
+    # disk (or a script with no row), which is what keeps the inventory honest.
     def test_every_script_has_an_inventory_row(self) -> None:
         guide = SCRIPTS_DIR.parent.parent / "docs" / "MAINTENANCE.md"
         documented = set(re.findall(r"`\.github/scripts/([^`]+)`", guide.read_text(encoding="utf-8")))

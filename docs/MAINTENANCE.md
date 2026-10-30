@@ -5,7 +5,10 @@ automation exists, which files implement it, how each one works, and the
 commands used to keep the list healthy. It complements
 [ROADMAP.md](ROADMAP.md), the dated decision record whose
 [Future considerations](ROADMAP.md#future-considerations) hold the
-outstanding work — this file is the map of what exists today.
+outstanding work — this file is the map of what exists today. This guide is
+paired with [CODE-COVERAGE.md](CODE-COVERAGE.md), the research-first register
+for coverage evidence and test-quality decisions; review it whenever tests or
+measured scripts change.
 
 ## Updating this document
 
@@ -20,11 +23,13 @@ dates, and add a revision-history entry. A change is not fully maintained
 until its implementation, roadmap status, and this guide agree.
 
 After each post-action revisit, the maintainer MUST read
-[ROADMAP.md](ROADMAP.md) in tandem with this guide. Reconcile the two files:
-move completed considerations out of the deferred section, record new gaps or
-policy decisions in the roadmap, and ensure both revision histories and
-"as-of" facts describe the same repository state. Treat disagreement between
-the files as documentation drift to resolve before closing the action.
+[ROADMAP.md](ROADMAP.md) in tandem with this guide, and
+[CODE-COVERAGE.md](CODE-COVERAGE.md) when tests or measured scripts changed.
+Reconcile these files: move completed considerations out of the deferred
+section, record new gaps or policy decisions in the roadmap, and ensure all
+revision histories and "as-of" facts describe the same repository state. Treat
+disagreement between the files as documentation drift to resolve before closing
+the action.
 
 This file MUST be updated whenever a roadmap item is completed, a new
 automation is added, or an existing one changes behavior. This is the
@@ -114,7 +119,8 @@ Three layers of automation exist, all maintained by the repository owner:
 | [`.github/pull_request_template.md`](../.github/pull_request_template.md)                       | PR template with the 10-item submission checklist                |
 | [`.env.example`](../.env.example)                                                              | Documents the `gh auth login` path and local token overrides     |
 | [`package.json`](../package.json)                                                               | npm scripts (`lint` -> awesome-lint, `test` -> unittest)         |
-| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 75 regression tests for validation, API helpers, and reporting   |
+| [`tests/test_validate_repos.py`](../tests/test_validate_repos.py)                               | 109 regression tests for validation, API helpers, and reporting  |
+| [`docs/CODE-COVERAGE.md`](CODE-COVERAGE.md)                                                     | Coverage baseline, research-first issue register, test-quality decisions |
 
 Governance documents the automation enforces:
 
@@ -422,6 +428,10 @@ python3 -m unittest discover -s tests -v
 python3 -m compileall .github/scripts tests
 ```
 
+See [CODE-COVERAGE.md](CODE-COVERAGE.md) for the measured branch-mode
+baseline, the research-first rule for test-quality issues, and the register of
+official guidance behind the tests.
+
 Ruff can be run as a maintainer-only, dependency-isolated audit without
 changing the repository:
 
@@ -435,6 +445,14 @@ clean across scripts and tests. Ruff, mypy, or pyright should not become
 required CI checks unless
 their configuration, version pin, and maintenance cost are explicitly
 reviewed first.
+
+### Code coverage and test-quality evidence
+
+Coverage is a maintainer diagnostic, not a CI gate. The measured baseline, the
+reproduction commands, the research-first rule, and the issue register of
+official guidance live in [CODE-COVERAGE.md](CODE-COVERAGE.md). Review that
+register with this guide whenever the test suite or a measured script changes;
+do not add a coverage threshold without an explicit policy review.
 
 ## Advisory state files
 
@@ -731,9 +749,18 @@ As of 2026-10-27:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-27.
+Last reviewed: 2026-10-30.
 
 <!-- Revision history:
+- 2026-10-30: extract the coverage rationale into docs/CODE-COVERAGE.md, add a
+  research-first issue register and links from MAINTENANCE/AGENTS/contributing,
+  harden the Action-freshness fixture and regex, add targeted coverage tests
+  (109 regression tests, 99% branch mode), and remove a time-dependent test;
+  state facts unchanged
+- 2026-10-30: add a code-coverage rationale section with the measured
+  branch-mode baseline, the reason coverage is not a CI gate, and the isolated
+  `uvx` command to reproduce it; no test or workflow change, state facts
+  unchanged
 - 2026-10-27: make advisory-triage return exit 2 when state files cannot be
   read, close external-link HTTP error responses, and add regression coverage
   for both failure paths; update the test count to 75

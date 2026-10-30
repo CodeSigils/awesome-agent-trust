@@ -22,6 +22,9 @@ is the contributor guide; `docs/MAINTENANCE.md` is the operations manual.
   authoritative.
 - Read `docs/ROADMAP.md` before documentation or policy work — it is a
   dated decision record; add a dated change-log row when policy changes.
+- Read `docs/CODE-COVERAGE.md` before changing tests or a measured script — it
+  is the research-first register for coverage evidence, official guidance, and
+  test-quality decisions. Review it with `docs/MAINTENANCE.md`.
 - Verification gate before any commit: `npm run lint`, `npm test`,
   `python3 .github/scripts/check-markdown-links.py` (plus
   `.github/scripts/validate-repos.py` for repository-list changes).
