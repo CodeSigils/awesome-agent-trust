@@ -54,7 +54,8 @@ uvx --from coverage coverage run --branch \
   --data-file=/tmp/awesome-agent-trust.coverage \
   -m unittest discover -s tests
 uvx --from coverage coverage report \
-  --data-file=/tmp/awesome-agent-trust.coverage -m
+  --data-file=/tmp/awesome-agent-trust.coverage \
+  --include='.github/scripts/*' -m
 ```
 
 `uvx` resolves coverage.py into an isolated environment and `--data-file`
