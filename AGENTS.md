@@ -9,7 +9,7 @@ is the contributor guide; `docs/MAINTENANCE.md` is the operations manual.
   (`awesome-lint`, `validate-repos`, `secret-scan`), linear history required.
   Direct pushes fail, including for admins.
 - Never push directly to `main`. Use: branch → PR → squash merge
-  (`gh pr merge --squash --auto` is the normal flow).
+  (`gh pr merge --auto --squash --delete-branch` is the normal flow).
 - Run `git status` and `git fetch origin` first, before starting any work.
 - Never rebase or rewrite a pushed PR branch except to satisfy the strict
   up-to-date requirement after the base moves
@@ -22,9 +22,10 @@ is the contributor guide; `docs/MAINTENANCE.md` is the operations manual.
   authoritative.
 - Read `docs/ROADMAP.md` before documentation or policy work — it is a
   dated decision record; add a dated change-log row when policy changes.
-- Read `docs/CODE-COVERAGE.md` before changing tests or a measured script — it
-  is the research-first register for coverage evidence, official guidance, and
-  test-quality decisions. Review it with `docs/MAINTENANCE.md`.
+- Read `tests/test_validate_repos.py` and `docs/CODE-COVERAGE.md` before
+  changing tests or a measured script. The suite is the behavioral record;
+  the register holds coverage evidence, official guidance, and test-quality
+  decisions. Review both with `docs/MAINTENANCE.md`.
 - Verification gate before any commit: `npm run lint`, `npm test`,
   `python3 .github/scripts/check-markdown-links.py` (plus
   `.github/scripts/validate-repos.py` for repository-list changes).
