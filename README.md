@@ -92,6 +92,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 
 - [AegisSwarm-Core](https://github.com/sunilgentyala/AegisSwarm-Core) - Zero-trust security and governance framework for autonomous multi-agent AI networks. Implements CSA Agentic Trust Framework.
 - [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) - Microsoft's toolkit for AI agent governance. Policy enforcement, zero-trust identity, execution sandboxing, and reliability engineering.
+- [Agent Role Contracts](https://github.com/suirindo/agent-role-contracts) - Offline validation of declared agent roles, task scopes, review separation, and handoffs before execution; does not grant execution authority or enforce runtime permissions.
 - [Agentic Trust Framework](https://github.com/massivescale-ai/agentic-trust-framework) - Open specification for Zero Trust governance of autonomous AI agents. Five core elements, four maturity levels.
 - [Agentoes](https://github.com/DAMONBLUE2021/Agentoes) - Enterprise AI trust platform for safe deployment and management of AI agents.
 - [Clyro](https://github.com/getclyro/clyro) - Governance platform that applies policies and controls to AI agent actions before execution.
