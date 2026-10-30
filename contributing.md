@@ -138,6 +138,12 @@ HEAD` and rerun; the message names a repository problem when the actual cause
 is local branch state. See the git workflow notes in
 [docs/MAINTENANCE.md](docs/MAINTENANCE.md#git-workflow-hygiene).
 
+If your change touches the test suite or a measured script, read
+[docs/CODE-COVERAGE.md](docs/CODE-COVERAGE.md) first: it records the
+research-first rule, the measured coverage baseline, and the official guidance
+behind each test-quality decision. Review it together with
+[docs/MAINTENANCE.md](docs/MAINTENANCE.md).
+
 ## Submission process
 
 1. Fork this repository and create a focused branch.

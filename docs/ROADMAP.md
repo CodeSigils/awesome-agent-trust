@@ -150,8 +150,10 @@ into planned work means starting a new entry here, not reviving an old one.
   reporting zero links would assert the list has no external links. Two
   `main()` tests cover that, and a third test asserts the maintenance guide's
   file inventory matches `.github/scripts/`, so the inventory cannot drift out of
-  sync silently. `report-advisory-triage.py` stays uncovered on purpose: its
-  failure surface is `load_json` and `render_report`, both already tested.
+  sync silently. The 2026-10-27 update added direct `main()` coverage for
+  unreadable advisory state files; remaining defensive branches and the
+  entry-point measurement boundary are recorded in
+  [CODE-COVERAGE.md](CODE-COVERAGE.md).
 - 2026-10-20: add the mixed-license clarification to the README adoption
   disclaimer — some entries cover a public protocol or open component within
   a mixed-license project, and readers should check the linked project's
@@ -193,6 +195,13 @@ into planned work means starting a new entry here, not reviving an old one.
   (`Repository access blocked`, DMCA) to authenticated API requests. The
   validator correctly fails closed on unavailable repositories, so retaining
   the entry would prevent complete validation of unrelated pull requests.
+- 2026-10-30: create `docs/CODE-COVERAGE.md` as the research-first register for
+  coverage evidence, official guidance, and test-quality decisions. Move the
+  coverage rationale out of MAINTENANCE, link the register from
+  MAINTENANCE/AGENTS/contributing, and record the 109-test, 99% branch-mode
+  baseline. The same change hardens the Action-freshness fixture and regex,
+  adds targeted tests for previously unmeasured failure paths, and removes a
+  time-dependent test.
 
 ## Future considerations
 
@@ -264,9 +273,13 @@ a current compromise or CI failure:
 | Quarterly                    | Full baseline audit (`validate-repos.py --baseline-audit`): clear from the advisory baseline entries that crossed ≥5 stars (observation-driven baseline hygiene — list entries are never removed on star count alone), re-check `review_after` dates in `repo-exceptions.json`, bump `reviewed` in `advisory-baseline.json` |
 | On PRs with advisory signals | Advisory signals are non-blocking; invite supporting evidence from the contributor when useful (for example package-registry downloads) under the advisory-only star policy in contributing.md                                                                                                                                       |
 
-Last reviewed: 2026-10-27.
+Last reviewed: 2026-10-30.
 
 <!-- Revision history:
+- 2026-10-30: create docs/CODE-COVERAGE.md as the research-first register for
+  coverage evidence and test-quality decisions, link it from
+  MAINTENANCE/AGENTS/contributing, and record the 109-test, 99% branch-mode
+  baseline; update the stale advisory-triage coverage note
 - 2026-10-27: record the advisory-triage incomplete-run exit fix and
   external-link HTTP-error cleanup, with direct regression coverage
 - 2026-10-27: replace the temporary `ubuntu-latest` migration policy with an
