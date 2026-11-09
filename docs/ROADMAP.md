@@ -76,6 +76,11 @@ and none is reopened. Work that is genuinely outstanding is held in
 [Future considerations](#future-considerations); promoting an item from there
 into planned work means starting a new entry here, not reviving an old one.
 
+- 2026-11-09: renew the `capiscio/capiscio-rfcs` exception for `LOW_STARS` and
+  `NO_LICENSE` through 2027-05-09. The public, non-archived specification
+  repository remains directly relevant through approved AGCP, trust-policy,
+  and agent-identity RFCs; its licensing remains unresolved, so the narrow
+  exception remains the evidence record rather than an automatic acceptance.
 - 2026-10-27: fix two report-path defects identified by review. Advisory
   triage now exits 2 when it cannot read its state files, matching the shared
   incomplete-run contract, and external-link monitoring closes `HTTPError`
