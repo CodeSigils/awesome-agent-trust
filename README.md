@@ -57,10 +57,10 @@ DNS-like resolution for AI agents. Core protocol with IETF draft backing.
 
 - [A2A Agent Cards](https://a2a-protocol.org/latest/) - JSON metadata at `/.well-known/agent-card.json`. Agents self-describe capabilities and authentication requirements.
 - [Agent Name Service](https://github.com/agentnameservice/ans) - Go reference implementation of the ANS protocol: registry, transparency log, and offline verifier for IETF draft [draft-narajala-courtney-ansv2](https://datatracker.ietf.org/doc/draft-narajala-courtney-ansv2/).
-- [ANS Registry](https://github.com/agentnameservice/ans-registry) - Registration and resolution for the Agent Name Service.
 - [ANS SDK for Go](https://github.com/agentnameservice/ans-sdk-go) - Go SDK for the Agent Name Service.
 - [ANS SDK for Java](https://github.com/agentnameservice/ans-sdk-java) - Java SDK for the Agent Name Service.
 - [ANS SDK for Rust](https://github.com/agentnameservice/ans-sdk-rust) - Rust SDK for the Agent Name Service.
+- [ANS Specification](https://github.com/agentnameservice/ans-spec) - Layered protocol specifications for the Agent Name Service, from identity anchor to agent authentication.
 - [ERC-8004 Registry](https://eips.ethereum.org/EIPS/eip-8004) - On-chain searchable agent identity registry. Agents register as NFTs with queryable capability metadata.
 - [route-ans](https://github.com/route-ans/route-ans) - High-performance ANS resolver with semantic versioning and Redis caching.
 
