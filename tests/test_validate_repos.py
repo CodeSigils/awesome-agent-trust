@@ -708,6 +708,7 @@ class ExternalLinkReportTests(unittest.TestCase):
                 "http://creativecommons.org/publicdomain/zero/1.0/",
                 "https://a2a-protocol.org/latest/",
                 "https://awesome.re",
+                "https://datatracker.ietf.org/doc/draft-narajala-courtney-ansv2/",
                 "https://eips.ethereum.org/EIPS/eip-8004",
                 "https://www.w3.org/TR/did-core/",
                 "https://www.w3.org/TR/vc-data-model-2.0/",
