@@ -162,6 +162,7 @@ Public registries, trust scoring, signed receipts, and verifiable attestation.
 
 Credit-score-style reputation systems and trust scoring for agents.
 
+- [Agent Trust Discovery](https://github.com/agentnameservice/agent-trust-discovery) - Go reference implementation of the ANS Trust Index: indexes registered agents and serves explainable five-dimension trust scores (integrity, identity, solvency, behavior, safety) with every signal, weight and reason exposed in the API.
 - [AgenticTrust](https://github.com/Dylan-Xu410/AgenticTrust) - Decentralized reputation, scoring, and discovery infrastructure for AI agents.
 - [djd-agent-score](https://github.com/jacobsd32-cpu/djd-agent-score) - Reputation scoring for AI agent wallets on Base.
 - [mnemopay-sdk](https://github.com/mnemopay/mnemopay-sdk) - Trust & reputation layer for AI agents. Agent Credit Score (300-850) + Merkle-anchored ledger.
