@@ -119,6 +119,7 @@ Frameworks for governing autonomous agent behavior — policy enforcement, zero-
 Fine-grained authorization, delegation, and permission systems for agent tool execution.
 
 - [ActionWarrant](https://github.com/selfradiance/actionwarrant) - Local CLI for verifying signed, scoped permission artifacts before agent actions.
+- [Agentic Identity Broker](https://github.com/zalando-incubator/agentic-identity-broker) - Identity and authorization broker for AI agents. Delegation, revocation, and audit trails.
 - [agent-passport](https://github.com/priyansh-x/agent-passport) - Authorization for AI agents. Scoped permissions, spend limits, delegation chains, instant revocation. Ed25519-signed.
 - [agentlock](https://github.com/webpro255/agentlock) - Adversarially benchmarked pre-action agent authorization. Framework-agnostic tool permissions.
 - [ampersona](https://github.com/joyshmitz/ampersona) - Rust platform for AI agent governance: identity (psychology, voice, capabilities) + authority (scoped actions, deny-by-default).
