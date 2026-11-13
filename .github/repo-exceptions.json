@@ -3,8 +3,8 @@
     {
       "repo": "capiscio/capiscio-rfcs",
       "checks": ["LOW_STARS", "NO_LICENSE"],
-      "reason": "Community specification repository; retain for public protocol review while licensing is clarified.",
-      "review_after": "2026-11-01"
+      "reason": "Public standards repository with approved AGCP, trust-policy, and agent-identity RFCs; retain for protocol review while licensing remains unresolved.",
+      "review_after": "2027-05-09"
     }
   ]
 }

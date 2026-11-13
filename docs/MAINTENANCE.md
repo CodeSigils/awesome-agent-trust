@@ -486,7 +486,9 @@ contains non-string values, or whose `review_after` is not an ISO date) are
 reported as validation errors instead of crashing the run.
 
 Current entry: `capiscio/capiscio-rfcs` (`LOW_STARS` + `NO_LICENSE`,
-2026-11-01).
+2027-05-09). The 2026-11-09 review confirmed that the public, non-archived
+repository remains relevant through its approved AGCP, trust-policy, and
+agent-identity RFCs; its license remains unresolved.
 
 ## New maintainer handover
 
@@ -749,9 +751,12 @@ As of 2026-10-27:
   considerations such as Layer-2 machine checks for recognized non-GitHub
   code hosts and scheduled settings verification.
 
-Last reviewed: 2026-10-30.
+Last reviewed: 2026-11-09.
 
 <!-- Revision history:
+- 2026-11-09: renew the `capiscio/capiscio-rfcs` LOW_STARS and NO_LICENSE
+  exception through 2027-05-09 after confirming its public, non-archived,
+  standards-focused scope; licensing remains unresolved
 - 2026-10-30: extract the coverage rationale into docs/CODE-COVERAGE.md, add a
   research-first issue register and links from MAINTENANCE/AGENTS/contributing,
   harden the Action-freshness fixture and regex, add targeted coverage tests

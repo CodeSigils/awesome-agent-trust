@@ -56,11 +56,11 @@ endorses their security claims.
 DNS-like resolution for AI agents. Core protocol with IETF draft backing.
 
 - [A2A Agent Cards](https://a2a-protocol.org/latest/) - JSON metadata at `/.well-known/agent-card.json`. Agents self-describe capabilities and authentication requirements.
-- [Agent Name Service](https://github.com/agentnameservice/ans) - Reference implementation of the ANS protocol. Registry, transparency log, and IETF draft `draft-narajala-ans-00`.
-- [ANS Registry](https://github.com/agentnameservice/ans-registry) - Registration and resolution for the Agent Name Service.
+- [Agent Name Service](https://github.com/agentnameservice/ans) - Go reference implementation of the ANS protocol: registry, transparency log, and offline verifier for IETF draft [draft-narajala-courtney-ansv2](https://datatracker.ietf.org/doc/draft-narajala-courtney-ansv2/).
 - [ANS SDK for Go](https://github.com/agentnameservice/ans-sdk-go) - Go SDK for the Agent Name Service.
 - [ANS SDK for Java](https://github.com/agentnameservice/ans-sdk-java) - Java SDK for the Agent Name Service.
 - [ANS SDK for Rust](https://github.com/agentnameservice/ans-sdk-rust) - Rust SDK for the Agent Name Service.
+- [ANS Specification](https://github.com/agentnameservice/ans-spec) - Layered protocol specifications for the Agent Name Service, from identity anchor to agent authentication.
 - [ERC-8004 Registry](https://eips.ethereum.org/EIPS/eip-8004) - On-chain searchable agent identity registry. Agents register as NFTs with queryable capability metadata.
 - [route-ans](https://github.com/route-ans/route-ans) - High-performance ANS resolver with semantic versioning and Redis caching.
 
@@ -163,6 +163,7 @@ Public registries, trust scoring, signed receipts, and verifiable attestation.
 
 Credit-score-style reputation systems and trust scoring for agents.
 
+- [Agent Trust Discovery](https://github.com/agentnameservice/agent-trust-discovery) - Go reference implementation of the ANS Trust Index: indexes registered agents and serves explainable five-dimension trust scores (integrity, identity, solvency, behavior, safety) with every signal, weight and reason exposed in the API.
 - [AgenticTrust](https://github.com/Dylan-Xu410/AgenticTrust) - Decentralized reputation, scoring, and discovery infrastructure for AI agents.
 - [djd-agent-score](https://github.com/jacobsd32-cpu/djd-agent-score) - Reputation scoring for AI agent wallets on Base.
 - [mnemopay-sdk](https://github.com/mnemopay/mnemopay-sdk) - Trust & reputation layer for AI agents. Agent Credit Score (300-850) + Merkle-anchored ledger.
@@ -236,6 +237,7 @@ affiliation unless the entry explicitly says so.
 
 - [Agentic AI Foundation](https://github.com/api-evangelist/agentic-ai-foundation) - Community repository tracking the Agentic AI Foundation ecosystem.
 - [CapiscIO RFCs](https://github.com/capiscio/capiscio-rfcs) - Request for Comments for CapiscIO protocols and standards. AGCP, trust policies, agent identity.
+- [Trust Index Specification](https://github.com/agentnameservice/trust-index-spec) - Open specification for scoring AI agents from Transparency Log data as a five-dimension Trust Vector, a recommended delegation profile and named risk factors, delivered as a signed W3C Verifiable Credential.
 - [Universal Trust Adapter protocol](https://github.com/alicelabs-llc/universal-trust-adapter) - A public proposal for interoperable agent-trust credentials, pairing ATC v3 and UTS draft specifications with a documented 36-vector conformance corpus. The repository also contains implementation packages and separately licensed source-available product layers; this entry covers the protocol materials, not the repository's full licensing model.
 
 ---
